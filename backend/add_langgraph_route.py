@@ -83,7 +83,7 @@ def convert_to_langchain_messages(
                     content.append({"type": "image_url", "image_url": p.image})
             result.append(HumanMessage(content=content))
         elif msg.role == "assistant":
-            # Handle both text and tool calls
+            # handle both text and tool calls
             text_parts = [
                 p for p in msg.content if isinstance(p, LanguageModelTextPart)
             ]
@@ -115,44 +115,51 @@ class ChatRequest(BaseModel):
     system: Optional[str] = ""
     tools: Optional[List[FrontendToolCall]] = []
     messages: List[LanguageModelV1Message]
+    show_query: Optional[bool] = False
 def add_langgraph_route(app: FastAPI, graph, path: str):
     async def chat_completions(request: ChatRequest):
         inputs = convert_to_langchain_messages(request.messages)
-        
         async def generate_sse():
             try:
-                async for msg, metadata in graph.astream(
+                final_response = ""
+                async for event in graph.astream(
                     {"messages": inputs},
                     {
                         "configurable": {
                             "system": request.system,
                             "frontend_tools": request.tools,
+                            "show_query": request.show_query,
                         }
                     },
-                    stream_mode="messages",
+                    stream_mode="updates",
                 ):
-                    if isinstance(msg, AIMessageChunk) or isinstance(msg, AIMessage):
-                        if msg.content:
-                            # Send text chunks in SSE format
-                            data = {
-                                "type": "text-delta",
-                                "textDelta": msg.content
-                            }
-                            yield f"data: {json.dumps(data)}\n\n"
-                            await asyncio.sleep(0.01)  # Small delay for streaming effect
-                
-                # Send completion signal
+                    for node_name, node_state in event.items():
+                        if "formatted_response_with_query" in node_state:
+                            response = node_state["formatted_response_with_query"]
+                            if response and node_state.get("is_final_response", False):
+                                final_response = response
+                                break
+                if final_response:
+                    words = final_response.split()
+                    for i, word in enumerate(words):
+                        data = {
+                            "type": "text-delta",
+                            "textDelta": word + (" " if i < len(words) - 1 else ""),
+                        }
+                        yield f"data: {json.dumps(data)}\n\n"
+                        # small delay for streaming effect
+                        await asyncio.sleep(0.05)
+                else:
+                    error_data = {
+                        "type": "text-delta",
+                        "textDelta": "No approved response was generated. Please try again.",
+                    }
+                    yield f"data: {json.dumps(error_data)}\n\n"
                 yield f"data: [DONE]\n\n"
-                
             except Exception as e:
-                # Send error message
-                error_data = {
-                    "type": "text-delta",
-                    "textDelta": f"Error: {str(e)}"
-                }
+                error_data = {"type": "text-delta", "textDelta": f"Error: {str(e)}"}
                 yield f"data: {json.dumps(error_data)}\n\n"
                 yield f"data: [DONE]\n\n"
-        
         return StreamingResponse(
             generate_sse(),
             media_type="text/event-stream",
@@ -162,11 +169,9 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "POST, OPTIONS",
                 "Access-Control-Allow-Headers": "Content-Type",
-            }
+            },
         )
-      # Add OPTIONS handler explicitly
     async def chat_options():
         return {"message": "OK"}
-    
     app.add_api_route(path, chat_completions, methods=["POST"])
     app.add_api_route(path, chat_options, methods=["OPTIONS"])
