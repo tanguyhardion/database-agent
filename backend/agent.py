@@ -11,11 +11,11 @@ db = SQLDatabase.from_uri(uri)
 from langchain_ollama import ChatOllama
 
 llm = ChatOllama(
-    model="qwen2.5-coder:0.5b",
+    model="llama3.2:3b",
     stream_usage=True,
 )
 review_llm = ChatOllama(
-    model="qwen2.5-coder:0.5b",
+    model="llama3.2:3b",
     temperature=0.1,  # lower temperature for more consistent review
     stream_usage=True,
 )

@@ -26,14 +26,13 @@ export class ChatService {
     if (this.isOfflineMode) {
       yield* this.getDemoResponse(messages, showQuery);
       return;
-    }
-    // Transform messages to the expected format
+    }    // Transform messages to the expected format
     const transformedMessages = messages.map((msg) => ({
       role: msg.role,
       content:
         msg.role === "user"
           ? [{ type: "text", text: msg.content }]
-          : msg.content,
+          : [{ type: "text", text: msg.content }],
     }));
     const requestBody: ChatRequest = {
       system: "You are a helpful assistant for SQL queries.",
