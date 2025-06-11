@@ -1,39 +1,21 @@
 # # Database
 #
-from dotenv import load_dotenv
 import os
 
-load_dotenv()
-server = os.getenv("DB_SERVER")
-db_name = os.getenv("DB_NAME")
-username = os.getenv("DB_USERNAME")
-password = os.getenv("DB_PASSWORD")
-driver = os.getenv("DB_DRIVER")
-uri = f"mssql+pyodbc://{username}:{password}@{server}/{db_name}?driver={driver}"
+uri = f"sqlite:///Chinook_Sqlite.sqlite"
 from langchain_community.utilities import SQLDatabase
 
 db = SQLDatabase.from_uri(uri)
-db.dialect
 # # LLM
 #
-from langchain_openai import AzureChatOpenAI
+from langchain_ollama import ChatOllama
 
-API_KEY = os.getenv("API_KEY")
-AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
-llm = AzureChatOpenAI(
-    azure_deployment="gpt-4o",
-    api_version="2024-12-01-preview",
-    azure_endpoint=AZURE_ENDPOINT,
-    api_key=API_KEY,
-    max_tokens=500,
+llm = ChatOllama(
+    model="qwen2.5-coder:0.5b",
     stream_usage=True,
 )
-review_llm = AzureChatOpenAI(
-    azure_deployment="gpt-4o",
-    api_version="2024-12-01-preview",
-    azure_endpoint=AZURE_ENDPOINT,
-    api_key=API_KEY,
-    max_tokens=1000,
+review_llm = ChatOllama(
+    model="qwen2.5-coder:0.5b",
     temperature=0.1,  # lower temperature for more consistent review
     stream_usage=True,
 )
@@ -54,20 +36,6 @@ def list_tables_tool() -> str:
         SELECT TABLE_NAME
         FROM INFORMATION_SCHEMA.TABLES
         WHERE TABLE_TYPE = 'BASE TABLE'
-            AND (
-                TABLE_SCHEMA = 'refined_zone_operational'
-                OR
-                TABLE_SCHEMA = 'trusted_zone_metadata'
-            )
-            AND (
-                TABLE_NAME LIKE 'T_MDD_%'
-                OR
-                TABLE_NAME LIKE 'T_MDS_%'
-                OR
-                TABLE_NAME LIKE 'T_MTR_%'
-                OR
-                TABLE_NAME LIKE 'T_TRN_%'
-            )
     """
     results = db.run_no_throw(query)
     if not results:
@@ -88,8 +56,9 @@ def get_sample_rows(selected_table) -> str:
         str: A few sample rows from the table (including column names)
     """
     query = f"""
-                SELECT TOP 2 *
-                FROM [refined_zone_operational].[{selected_table}]
+                SELECT *
+                FROM [{selected_table}]
+                LIMIT 2
             """
     results = db.run_no_throw(query, include_columns=True)
     return results
@@ -99,13 +68,9 @@ def get_sample_rows(selected_table) -> str:
 @tool("ExecuteQuery")
 def execute_query(sql_statement) -> str:
     """Use this tool once you built the query that will retrieve results answering the user's question.
-    Beware to use the database's schemas as a prefix to table names, which is:
-    - 'refined_zone_operational' for the tables starting with 'T_MTR' or 'T_TRN'
-    - 'trusted_zone_metadata' for the tables starting with 'T_MDS' or 'T_MDD'
-    For example: 'SELECT COUNT(*) FROM refined_zone_operational.T_MTR_COMPANY' or 'SELECT COUNT(*) FROM trusted_zone_metadata.T_MDS_ENTITY'
     Beware that this tool has safeguards and will reject your query if it could potentially yield large results.
     Args:
-        sql_statement: A correct SQL Server SELECT statement that retrieves results answering the user's question
+        sql_statement: A correct SQLite SELECT statement that retrieves results answering the user's question
     Returns:
         str: The statement result
     """
@@ -113,7 +78,7 @@ def execute_query(sql_statement) -> str:
     # check if it's a SELECT without aggregation or TOP clause
     risky = (
         stmt_upper.startswith("SELECT")
-        and "TOP" not in stmt_upper
+        and "LIMIT" not in stmt_upper
         and "COUNT(" not in stmt_upper
         and "SUM(" not in stmt_upper
         and "AVG(" not in stmt_upper
@@ -123,7 +88,7 @@ def execute_query(sql_statement) -> str:
     if risky:
         return (
             "Query rejected: potential to return a large number of rows. "
-            "Please include a TOP clause (e.g., SELECT TOP 100 ...) or use aggregation."
+            "Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
         )
     results = db.run_no_throw(sql_statement)
     return results
@@ -133,19 +98,6 @@ def execute_query(sql_statement) -> str:
 tools = [list_tables_tool, get_sample_rows, execute_query]
 tools_by_name = {tool.name: tool for tool in tools}
 llm_with_tools = llm.bind_tools(tools)
-
-
-# # Helper Functions
-def log_cost(cb):
-    """Helper function to log costs"""
-    with open("cost/cost_history.txt", "a") as f:
-        f.write(f"{str(cb)}\n\n")
-    latest_cost = cb.total_cost
-    with open("cost/total_cost.txt", "r") as f:
-        total_cost = float(f.read().strip())
-    total_cost += latest_cost
-    with open("cost/total_cost.txt", "w") as f:
-        f.write(f"{total_cost}")
 
 
 # # Workflow
@@ -179,18 +131,20 @@ from langchain_core.runnables import RunnableConfig
 
 
 # Define the state structure
+from typing import NotRequired
+
 class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
-    user_question: str
-    executed_query: str
-    query_result: str
-    llm_response: str
-    review_feedback: str
-    needs_revision: bool
-    final_approved_response: str
-    is_final_response: bool
-    show_query: bool
-    formatted_response_with_query: str
+    user_question: NotRequired[str]
+    executed_query: NotRequired[str]
+    query_result: NotRequired[str]
+    llm_response: NotRequired[str]
+    review_feedback: NotRequired[str]
+    needs_revision: NotRequired[bool]
+    final_approved_response: NotRequired[str]
+    is_final_response: NotRequired[bool]
+    show_query: NotRequired[bool]
+    formatted_response_with_query: NotRequired[str]
 
 
 def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
@@ -199,7 +153,7 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
         result = llm_with_tools.invoke(
             [
                 SystemMessage(
-                    content="""You are an expert SQL Server assistant that translates natural language questions into business-relevant answers, using SQL under the hood, but without exposing any technical details to the user.
+                    content="""You are an expert SQLite assistant that translates natural language questions into business-relevant answers, using SQL under the hood, but without exposing any technical details to the user.
                     PRIMARY DIRECTIVE
                     Never reveal or reference table names, schema names, column names, joins, SQL logic, or any technical detail, even if the user explicitly asks. Treat the user as a business stakeholder. Your job is to deliver accurate, logical, and relevant business answers only. The user should never see how the data is queried or what the structure looks like.
                     CORE BEHAVIOR
@@ -223,7 +177,6 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
             ]
             + state["messages"]
         )
-        log_cost(cb)
     return {
         "messages": [result],
         "llm_response": result.content if not result.tool_calls else "",
@@ -256,10 +209,10 @@ def call_tools_node(state: AgentState, config: RunnableConfig) -> AgentState:
 
 def review_response_node(state: AgentState, config: RunnableConfig) -> AgentState:
     """Review the LLM's response for accuracy and logic"""
-    user_question = state["user_question"]
-    executed_query = state["executed_query"]
-    query_result = state["query_result"]
-    llm_response = state["llm_response"]
+    user_question = state.get("user_question", "")
+    executed_query = state.get("executed_query", "")
+    query_result = state.get("query_result", "")
+    llm_response = state.get("llm_response", "")
     show_query = state.get("show_query", False)
     if not executed_query and llm_response:
         # simple response, no query involved — approve directly
@@ -281,7 +234,6 @@ def review_response_node(state: AgentState, config: RunnableConfig) -> AgentStat
     """
     with get_openai_callback() as cb:
         review_result = review_llm.invoke([HumanMessage(content=review_prompt)])
-        log_cost(cb)
     needs_revision = "NEEDS_REVISION" in review_result.content
     # If approved, prepare the final response (with or without query)
     final_approved_response = ""
@@ -341,11 +293,8 @@ def should_continue_tools(state: AgentState) -> str:
     if hasattr(last_message, "tool_calls") and last_message.tool_calls:
         return "call_tools"
     else:
-        # Check if we have executed a query and need review
-        if state.get("executed_query"):
-            return "review_response"
-        else:
-            return END
+        # Always go through review_response to handle both SQL and non-SQL responses
+        return "review_response"
 
 
 def should_revise(state: AgentState) -> str:
