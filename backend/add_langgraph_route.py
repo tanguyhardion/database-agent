@@ -14,31 +14,42 @@ from pydantic import BaseModel
 from typing import List, Literal, Union, Optional, Any
 import json
 import asyncio
+
 class LanguageModelTextPart(BaseModel):
     type: Literal["text"]
     text: str
     providerMetadata: Optional[Any] = None
+
+
 class LanguageModelImagePart(BaseModel):
     type: Literal["image"]
     image: str  # Will handle URL or base64 string
     mimeType: Optional[str] = None
     providerMetadata: Optional[Any] = None
+
+
 class LanguageModelFilePart(BaseModel):
     type: Literal["file"]
     data: str  # URL or base64 string
     mimeType: str
     providerMetadata: Optional[Any] = None
+
+
 class LanguageModelToolCallPart(BaseModel):
     type: Literal["tool-call"]
     toolCallId: str
     toolName: str
     args: Any
     providerMetadata: Optional[Any] = None
+
+
 class LanguageModelToolResultContentPart(BaseModel):
     type: Literal["text", "image"]
     text: Optional[str] = None
     data: Optional[str] = None
     mimeType: Optional[str] = None
+
+
 class LanguageModelToolResultPart(BaseModel):
     type: Literal["tool-result"]
     toolCallId: str
@@ -47,26 +58,38 @@ class LanguageModelToolResultPart(BaseModel):
     isError: Optional[bool] = None
     content: Optional[List[LanguageModelToolResultContentPart]] = None
     providerMetadata: Optional[Any] = None
+
+
 class LanguageModelSystemMessage(BaseModel):
     role: Literal["system"]
     content: str
+
+
 class LanguageModelUserMessage(BaseModel):
     role: Literal["user"]
     content: List[
         Union[LanguageModelTextPart, LanguageModelImagePart, LanguageModelFilePart]
     ]
+
+
 class LanguageModelAssistantMessage(BaseModel):
     role: Literal["assistant"]
     content: List[Union[LanguageModelTextPart, LanguageModelToolCallPart]]
+
+
 class LanguageModelToolMessage(BaseModel):
     role: Literal["tool"]
     content: List[LanguageModelToolResultPart]
+
+
 LanguageModelV1Message = Union[
     LanguageModelSystemMessage,
     LanguageModelUserMessage,
     LanguageModelAssistantMessage,
     LanguageModelToolMessage,
 ]
+
+
 def convert_to_langchain_messages(
     messages: List[LanguageModelV1Message],
 ) -> List[BaseMessage]:
@@ -107,21 +130,29 @@ def convert_to_langchain_messages(
                     )
                 )
     return result
+
+
 class FrontendToolCall(BaseModel):
     name: str
     description: Optional[str] = None
     parameters: dict[str, Any]
+
+
 class ChatRequest(BaseModel):
     system: Optional[str] = ""
     tools: Optional[List[FrontendToolCall]] = []
     messages: List[LanguageModelV1Message]
     show_query: Optional[bool] = False
+
+
 def add_langgraph_route(app: FastAPI, graph, path: str):
     async def chat_completions(request: ChatRequest):
         inputs = convert_to_langchain_messages(request.messages)
+
         async def generate_sse():
             try:
                 final_response = ""
+
                 async for event in graph.astream(
                     {"messages": inputs},
                     {
@@ -134,11 +165,14 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                     stream_mode="updates",
                 ):
                     for node_name, node_state in event.items():
-                        if "formatted_response_with_query" in node_state:
-                            response = node_state["formatted_response_with_query"]
-                            if response and node_state.get("is_final_response", False):
-                                final_response = response
-                                break
+                        # Get the final LLM response from messages
+                        if "messages" in node_state and node_state["messages"]:
+                            last_message = node_state["messages"][-1]
+                            if hasattr(last_message, 'content') and last_message.content:
+                                # Only use messages that don't have tool calls (final responses)
+                                if not (hasattr(last_message, 'tool_calls') and last_message.tool_calls):
+                                    final_response = last_message.content
+
                 if final_response:
                     words = final_response.split()
                     for i, word in enumerate(words):
@@ -152,14 +186,17 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                 else:
                     error_data = {
                         "type": "text-delta",
-                        "textDelta": "No approved response was generated. Please try again.",
+                        "textDelta": "No response was generated. Please try again.",
                     }
                     yield f"data: {json.dumps(error_data)}\n\n"
+
                 yield f"data: [DONE]\n\n"
+
             except Exception as e:
                 error_data = {"type": "text-delta", "textDelta": f"Error: {str(e)}"}
                 yield f"data: {json.dumps(error_data)}\n\n"
                 yield f"data: [DONE]\n\n"
+
         return StreamingResponse(
             generate_sse(),
             media_type="text/event-stream",
@@ -171,7 +208,9 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                 "Access-Control-Allow-Headers": "Content-Type",
             },
         )
+
     async def chat_options():
         return {"message": "OK"}
+
     app.add_api_route(path, chat_completions, methods=["POST"])
     app.add_api_route(path, chat_options, methods=["OPTIONS"])
