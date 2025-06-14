@@ -45,28 +45,8 @@
       <div v-else class="chat-container">
         <div class="chat-header">
           <div class="chat-header-left">
-            <h2 class="chat-title">{{ currentChat.title }}</h2>
-            <div class="chat-meta">
+            <h2 class="chat-title">{{ currentChat.title }}</h2>            <div class="chat-meta">
               {{ currentChat.messages.length }} messages
-            </div>
-            <div class="setting-item">
-              <label
-                class="toggle-label"
-                style="
-                  cursor: pointer;
-                  display: flex;
-                  gap: 0.5rem;
-                  align-items: center;
-                "
-              >
-                <input
-                  type="checkbox"
-                  v-model="showQuery"
-                  @change="onShowQueryToggle"
-                  class="toggle-checkbox"
-                />
-                <span class="toggle-text">Show SQL Query</span>
-              </label>
             </div>
           </div>
           <div class="connection-status">
@@ -162,11 +142,6 @@ const connectionStatus = ref<
 const connectionMessage = ref("");
 const connectionCheckInterval = ref<number | null>(null);
 const currentChat = computed(() => chatStore.currentChat);
-const showQuery = ref(chatService.getShowQuery());
-const onShowQueryToggle = () => {
-  chatService.setShowQuery(showQuery.value);
-  console.log(`Query display ${showQuery.value ? "enabled" : "disabled"}`);
-};
 const exampleQuestions = [
   "How many properties are in the UK?",
   "Show me the top performing entities",
@@ -201,11 +176,9 @@ const sendMessage = async (content: string) => {
       content: "",
       isStreaming: true,
     });
-    if (!assistantMessage) return;
-    // Stream response
+    if (!assistantMessage) return;    // Stream response
     const stream = chatService.streamChat(
-      currentChat.value.messages.slice(0, -1).concat([userMessage]),
-      showQuery.value
+      currentChat.value.messages.slice(0, -1).concat([userMessage])
     );
     for await (const chunk of stream) {
       chatStore.streamMessage(currentChat.value.id, assistantMessage.id, chunk);

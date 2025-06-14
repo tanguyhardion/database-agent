@@ -7,7 +7,6 @@ export interface ChatRequest {
     role: string;
     content: string | Array<{ type: string; text: string }>;
   }>;
-  show_query?: boolean; // Add this field
 }
 export class ChatService {
   private baseUrl = "http://localhost:8000";
@@ -17,28 +16,24 @@ export class ChatService {
     | "checking"
     | "connected"
     | "disconnected" = "unknown";
-  private showQuery = false; // Add this property
+
   async *streamChat(
-    messages: Message[],
-    showQuery: boolean = false
-  ): AsyncGenerator<string, void, unknown> {
-    // Check if we should use offline mode (demo mode)
+    messages: Message[]
+  ): AsyncGenerator<string, void, unknown> {    // Check if we should use offline mode (demo mode)
     if (this.isOfflineMode) {
-      yield* this.getDemoResponse(messages, showQuery);
+      yield* this.getDemoResponse(messages);
       return;
-    }    // Transform messages to the expected format
+    }// Transform messages to the expected format
     const transformedMessages = messages.map((msg) => ({
       role: msg.role,
       content:
         msg.role === "user"
           ? [{ type: "text", text: msg.content }]
           : [{ type: "text", text: msg.content }],
-    }));
-    const requestBody: ChatRequest = {
+    }));    const requestBody: ChatRequest = {
       system: "You are a helpful assistant for SQL queries.",
       tools: [],
       messages: transformedMessages,
-      show_query: showQuery, // Include the option
     };
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -89,23 +84,20 @@ export class ChatService {
     } catch (error) {
       console.error("Error in streamChat:", error);
       // Fall back to offline mode if connection fails
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        console.log("Backend not available, switching to demo mode");
+      if (error instanceof TypeError && error.message.includes("fetch")) {        console.log("Backend not available, switching to demo mode");
         this.isOfflineMode = true;
-        yield* this.getDemoResponse(messages, showQuery);
+        yield* this.getDemoResponse(messages);
         return;
       }
       throw error;
     }
-  }
-  private async *getDemoResponse(
-    messages: Message[],
-    showQuery: boolean
+  }  private async *getDemoResponse(
+    messages: Message[]
   ): AsyncGenerator<string, void, unknown> {
     const lastMessage = messages[messages.length - 1];
     const userQuery = lastMessage?.content.toLowerCase() || "";
     let response = "";
-    let demoQuery = "";
+    
     if (userQuery.includes("table") || userQuery.includes("schema")) {
       response = `I found information about the available data structures in your database.
 Based on your query, I can see several data categories including:
@@ -115,13 +107,11 @@ Based on your query, I can see several data categories including:
 - Sales records
 The database contains structured information across multiple data domains.
 *Note: This is demo mode. Connect to the backend for real database queries.*`;
-      demoQuery = `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`;
     } else if (userQuery.includes("count") || userQuery.includes("how many")) {
       response = `I've analyzed the data for your count request.
 **Result:** 1,247 records found.
 The count was successfully calculated based on your criteria.
 *Note: This is demo mode. Connect to the backend for real database queries.*`;
-      demoQuery = `SELECT COUNT(*) FROM refined_zone_operational.T_MTR_COMPANY WHERE status = 'active'`;
     } else if (userQuery.includes("sample") || userQuery.includes("example")) {
       response = `Here are some sample results from your query:
 | ID | Name | Category | Value |
@@ -131,7 +121,6 @@ The count was successfully calculated based on your criteria.
 | 3 | StartupXYZ | Software | 2,500,000 |
 This gives you an overview of the data structure and typical values.
 *Note: This is demo mode. Connect to the backend for real database queries.*`;
-      demoQuery = `SELECT TOP 3 id, name, category, value FROM refined_zone_operational.T_MTR_COMPANY ORDER BY value DESC`;
     } else {
       response = `I understand you're asking: "${lastMessage?.content}"
 I'm analyzing your request and will:
@@ -141,12 +130,8 @@ I'm analyzing your request and will:
 4. ✅ Present the findings in a clear format
 *Note: This is demo mode. Start the backend server to connect to your actual database for real-time queries.*
 To get started with live data, ensure your backend server is running on http://localhost:8000`;
-      demoQuery = `SELECT * FROM relevant_table WHERE condition = 'user_criteria'`;
     }
-    // Add query section if requested
-    if (showQuery) {
-      response += `\n\n---\n**Technical Details (SQL Query Executed):**\n\`\`\`sql\n${demoQuery}\n\`\`\``;
-    }
+
     // Simulate streaming by yielding chunks
     const words = response.split(" ");
     for (let i = 0; i < words.length; i++) {
@@ -158,15 +143,8 @@ To get started with live data, ensure your backend server is running on http://l
   }
   setOfflineMode(offline: boolean) {
     this.isOfflineMode = offline;
-  }
-  isInOfflineMode(): boolean {
+  }  isInOfflineMode(): boolean {
     return this.isOfflineMode;
-  }
-  setShowQuery(show: boolean) {
-    this.showQuery = show;
-  }
-  getShowQuery(): boolean {
-    return this.showQuery;
   }
   async testConnection(): Promise<{ isConnected: boolean; status: string }> {
     this.connectionStatus = "checking";

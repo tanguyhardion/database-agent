@@ -20,7 +20,7 @@ API_KEY = os.getenv("API_KEY")
 AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
 
 llm = ChatMistralAI(
-    model="mistral-small-2503" # type: ignore
+    model="mistral-large-2411" # type: ignore
 )
 
 # -------------------------- Tools --------------------------
@@ -150,8 +150,7 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
     with get_openai_callback() as cb:
         result = llm_with_tools.invoke(
             [
-                SystemMessage(
-                    content="""You are an expert SQLite assistant that translates natural language questions into business-relevant answers, using SQL under the hood, but without exposing any technical details to the user.
+                SystemMessage(                    content="""You are an expert SQLite assistant that translates natural language questions into business-relevant answers, using SQL under the hood, but without exposing any technical details to the user.
                     PRIMARY DIRECTIVE
                     Never reveal or reference table names, schema names, column names, joins, SQL logic, or any technical detail, even if the user explicitly asks. Treat the user as a business stakeholder. Your job is to deliver accurate, logical, and relevant business answers only. The user should never see how the data is queried or what the structure looks like.
 

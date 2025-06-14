@@ -142,7 +142,6 @@ class ChatRequest(BaseModel):
     system: Optional[str] = ""
     tools: Optional[List[FrontendToolCall]] = []
     messages: List[LanguageModelV1Message]
-    show_query: Optional[bool] = False
 
 
 def add_langgraph_route(app: FastAPI, graph, path: str):
@@ -154,12 +153,10 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                 final_response = ""
 
                 async for event in graph.astream(
-                    {"messages": inputs},
-                    {
+                    {"messages": inputs},                    {
                         "configurable": {
                             "system": request.system,
                             "frontend_tools": request.tools,
-                            "show_query": request.show_query,
                         }
                     },
                     stream_mode="updates",
