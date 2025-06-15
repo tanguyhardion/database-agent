@@ -24,7 +24,7 @@
             v-for="message in chat.messages"
             :key="message.id"
             :message="message"
-            @edit="$emit('edit', message.id, $event)"
+            @edit="(messageId, content) => $emit('edit', messageId, content)"
             @delete="$emit('delete', message.id)"
             @start-edit="$emit('start-edit', message.id)"
             @cancel-edit="$emit('cancel-edit', message.id)"

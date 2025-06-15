@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, nextTick } from 'vue';
 import { Database } from "lucide-vue-next";
 import ChatInput from "./ChatInput.vue";
 
@@ -44,7 +44,11 @@ defineEmits<{
 }>();
 
 defineExpose({
-  focus: () => chatInputRef.value?.focus(),
+  focus: () => {
+    nextTick(() => {
+      chatInputRef.value?.focus();
+    });
+  },
   setLoading: (loading: boolean) => chatInputRef.value?.setLoading(loading)
 });
 </script>

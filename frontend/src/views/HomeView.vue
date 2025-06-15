@@ -56,9 +56,7 @@ const toggleSidebar = () => {
 
 const createNewChat = () => {
   chatStore.createNewChat();
-  nextTick(() => {
-    chatContainerRef.value?.focus();
-  });
+  // Let the input handle its own focus - no need to manually focus
 };
 
 const createTableDemo = () => {
@@ -148,19 +146,84 @@ const sendMessage = async (content: string) => {
       role: "assistant",
       content:
         "Sorry, I encountered an error while processing your request. Please try again.",
-    });
-  } finally {
+    });  } finally {
     chatContainerRef.value?.setLoading(false);
     scrollToBottom();
-    // Refocus the chat input after sending a message
+    // Ensure input focus is restored after message processing
     nextTick(() => {
       chatContainerRef.value?.focus();
     });
   }
 };
-const handleMessageEdit = (messageId: string, content: string) => {
+const handleMessageEdit = async (messageId: string, content: string) => {
   if (!currentChat.value) return;
+  
+  // Find the index of the message to edit BEFORE updating it
+  const messageIndex = currentChat.value.messages.findIndex(m => m.id === messageId);
+  if (messageIndex === -1) return;
+  
+  const editedMessage = currentChat.value.messages[messageIndex];
+  
+  // Update the message content
   chatStore.updateMessage(currentChat.value.id, messageId, content);
+  
+  // If the edited message is a user message, regenerate the assistant response
+  if (editedMessage.role === 'user') {
+    // Remove all messages after the edited message (including assistant responses)
+    const messagesToKeep = currentChat.value.messages.slice(0, messageIndex + 1);
+    
+    // Update the chat to only include messages up to and including the edited message
+    const chat = chatStore.chats.find(c => c.id === currentChat.value!.id);
+    if (chat) {
+      chat.messages = messagesToKeep;
+      chat.updatedAt = new Date();
+      chatStore.saveToStorage();
+    }
+    
+    // Add loading message for AI response
+    const loadingMessage = chatStore.addLoadingMessage(currentChat.value.id);
+    if (!loadingMessage) return;
+
+    // Scroll to bottom
+    scrollToBottom();
+    // Set loading state
+    chatContainerRef.value?.setLoading(true);
+    
+    try {
+      // Send updated conversation and get new response
+      const response = await chatService.sendMessage(
+        messagesToKeep.filter(m => !m.isLoading)
+      );
+      
+      // Update the loading message with the actual response
+      chatStore.updateLoadingMessage(currentChat.value.id, loadingMessage.id, response);
+      
+      // Update offline mode status
+      isOfflineMode.value = chatService.isInOfflineMode();
+      connectionStatus.value = chatService.getConnectionStatus();
+      if (isOfflineMode.value) {
+        connectionMessage.value = "Demo mode - backend not available";
+      } else {
+        connectionMessage.value = "Connected to backend";
+      }
+      
+    } catch (error) {
+      console.error("Error regenerating response:", error);
+      // Remove loading message and add error message
+      chatStore.removeLoadingMessage(currentChat.value.id, loadingMessage.id);
+      chatStore.addMessage(currentChat.value.id, {
+        role: "assistant",
+        content:
+          "Sorry, I encountered an error while processing your request. Please try again.",
+      });    } finally {
+      chatContainerRef.value?.setLoading(false);
+      scrollToBottom();
+      // Ensure input focus is restored after message editing
+      nextTick(() => {
+        chatContainerRef.value?.focus();
+      });
+    }
+  }
 };
 const handleMessageDelete = (messageId: string) => {
   if (!currentChat.value) return;

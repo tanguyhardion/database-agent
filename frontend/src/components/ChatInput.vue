@@ -7,7 +7,6 @@
         @input="handleInput"
         :placeholder="placeholderText"
         class="message-input"
-        :class="{ 'message-input--loading': isLoading }"
         rows="1"
       ></textarea>
       
@@ -84,10 +83,11 @@ const handleSubmit = () => {
     emit('send', message)
     inputMessage.value = ''
     
-    // Reset textarea height
+    // Reset textarea height and immediately refocus
     nextTick(() => {
       if (inputRef.value) {
         inputRef.value.style.height = 'auto'
+        inputRef.value.focus() // Refocus immediately after sending
       }
     })
   }
@@ -101,6 +101,15 @@ const addNewLine = (event: KeyboardEvent) => {
 
 const setLoading = (loading: boolean) => {
   isLoading.value = loading
+  
+  // When loading is finished, refocus the input to ensure it stays focused
+  if (!loading) {
+    nextTick(() => {
+      if (inputRef.value) {
+        inputRef.value.focus()
+      }
+    })
+  }
 }
 
 const focus = () => {
@@ -155,18 +164,9 @@ defineExpose({
   line-height: 1.5;  resize: none;
   outline: none;
   background: transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  &::placeholder {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);  &::placeholder {
     color: var(--color-gray-400);
     font-weight: 400;
-  }
-  &--loading {
-    background: rgba(99, 102, 241, 0.05);
-    
-    &::placeholder {
-      color: var(--color-primary);
-      font-weight: 500;
-    }
   }
 }
 

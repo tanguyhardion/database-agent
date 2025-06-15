@@ -214,11 +214,12 @@ export const useChatStore = defineStore('chat', () => {
   // Initialize with a default chat if no chats exist
   if (chats.value.length === 0) {
     createNewChat()
-  }
-  return {
+  }  return {
     chats,
     currentChatId,
-    currentChat,    loadFromStorage,
+    currentChat,
+    loadFromStorage,
+    saveToStorage,
     createNewChat,
     selectChat,
     deleteChat,
