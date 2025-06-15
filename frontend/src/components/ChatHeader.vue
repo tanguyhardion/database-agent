@@ -1,6 +1,5 @@
 <template>
-  <div class="chat-header">
-    <div class="chat-header-left">
+  <div class="chat-header">    <div class="chat-header-left">
       <button 
         class="mobile-menu-btn"
         @click="$emit('toggle-sidebar')"
@@ -9,6 +8,9 @@
         <Menu :size="20" />
       </button>      <h2 class="chat-title">{{ title }}</h2>
       <div class="chat-meta">{{ messageCount }} messages</div>
+      <div class="cost-meta" v-if="totalCost !== null">
+        ${{ totalCost.toFixed(4) }}
+      </div>
     </div>
     <div class="connection-status">
       <HelpTooltip />
@@ -24,6 +26,7 @@
 
 <script setup lang="ts">
 import { Menu } from 'lucide-vue-next'
+import { ref, onMounted, onUnmounted } from 'vue'
 import HelpTooltip from "./HelpTooltip.vue";
 import ConnectionStatus from "./ConnectionStatus.vue";
 
@@ -41,6 +44,33 @@ defineEmits<{
   'retry-connection': [];
   'toggle-sidebar': [];
 }>();
+
+const totalCost = ref<number | null>(null);
+let costInterval: number | null = null;
+
+const fetchCost = async () => {
+  try {
+    const response = await fetch('/api/cost');
+    if (response.ok) {
+      const data = await response.json();
+      totalCost.value = data.cost;
+    }
+  } catch (error) {
+    console.error('Failed to fetch cost:', error);
+  }
+};
+
+onMounted(() => {
+  fetchCost();
+  // Update cost every 10 seconds
+  costInterval = setInterval(fetchCost, 10000);
+});
+
+onUnmounted(() => {
+  if (costInterval) {
+    clearInterval(costInterval);
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -111,6 +141,20 @@ defineEmits<{
   background: rgba(156, 163, 175, 0.1);
   padding: 4px 12px;
   border-radius: var(--radius-full);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.cost-meta {
+  font-size: 14px;
+  color: var(--color-green-600);
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(34, 197, 94, 0.2);
 
   @media (max-width: 768px) {
     display: none;
