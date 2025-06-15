@@ -123,11 +123,16 @@ const formatTime = (date: Date) => {
 .sidebar {
   width: 280px;
   height: 100vh;
-  background-color: #111827;
-  color: white;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(71, 85, 105, 0.3);
+  color: var(--color-white);
   display: flex;
   flex-direction: column;
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
 
   &--collapsed {
     width: 64px;
@@ -148,24 +153,40 @@ const formatTime = (date: Date) => {
 }
 
 .sidebar__header {
-  padding: 16px;
-  border-bottom: 1px solid #374151;
+  padding: 20px;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .sidebar--collapsed & {
+    justify-content: center;
+    padding: 20px 12px;
+  }
 }
 
 .sidebar__toggle {
-  background: none;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: white;
+  color: var(--color-white);
   cursor: pointer;
-  padding: 8px;
-  border-radius: 6px;
-  transition: background-color 0.2s;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 
   &:hover {
-    background-color: #374151;
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -173,32 +194,48 @@ const formatTime = (date: Date) => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background-color: #10a37f;
-  color: white;
+  gap: 10px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+  color: var(--color-white);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-lg);
+  white-space: nowrap;
+  min-width: 0;
+
+  .sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+  }
 
   &:hover:not(:disabled) {
-    background-color: #0d8f6e;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    background: linear-gradient(135deg, var(--color-secondary-dark) 0%, #047857 100%);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+    transform: none;
   }
 
   .spinner {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
+    border-top: 2px solid var(--color-white);
+    border-radius: var(--radius-full);
     animation: spin 1s linear infinite;
   }
 }
@@ -213,6 +250,14 @@ const formatTime = (date: Date) => {
   flex: 1;
   overflow-y: auto;
   padding: 16px 0;
+  transition: opacity 0.2s ease-in-out;
+  min-width: 280px;
+
+  .sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+  }
 }
 
 .chat-list {
@@ -222,22 +267,29 @@ const formatTime = (date: Date) => {
 .chat-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px;
-  margin-bottom: 4px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 
   &:hover {
-    background-color: #374151;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-md);
   }
 
   &--active {
-    background-color: #10a37f;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 
     &:hover {
-      background-color: #0d8f6e;
+      background: linear-gradient(135deg, var(--color-secondary-dark) 0%, #047857 100%);
     }
   }
 }
@@ -279,7 +331,7 @@ const formatTime = (date: Date) => {
 
 .chat-item__actions {
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   .chat-item:hover & {
     opacity: 1;
@@ -291,16 +343,26 @@ const formatTime = (date: Date) => {
 }
 
 .chat-item__delete {
-  background: none;
+  background: transparent;
   border: none;
-  color: #ef4444;
+  color: var(--color-error);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background-color: rgba(239, 68, 68, 0.1);
+    background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
+    color: var(--color-white);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -329,7 +391,15 @@ const formatTime = (date: Date) => {
 
 .sidebar__footer {
   padding: 16px;
-  border-top: 1px solid #374151;
+  border-top: 1px solid rgba(71, 85, 105, 0.3);
+  transition: opacity 0.2s ease-in-out;
+  min-width: 280px;
+
+  .sidebar--collapsed & {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease-in-out;
+  }
 }
 
 .app-info {
@@ -337,13 +407,17 @@ const formatTime = (date: Date) => {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
-    color: #10a37f;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   p {
     font-size: 12px;
-    color: #9ca3af;
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.4;
+    font-weight: 400;
   }
 }
 

@@ -135,17 +135,38 @@ const deleteMessage = () => {
 <style scoped lang="scss">
 .message {
   display: flex;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+  gap: 16px;
+  padding: 24px;
+  border-radius: var(--radius-2xl);
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
   &--user {
-    background-color: rgba(16, 163, 127, 0.1);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    margin-left: 10%;
+    
+    @media (max-width: 768px) {
+      margin-left: 5%;
+    }
   }
 
   &--assistant {
-    background-color: rgba(52, 53, 65, 0.05);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    margin-right: 10%;
+    box-shadow: var(--shadow-md);
+    
+    @media (max-width: 768px) {
+      margin-right: 5%;
+    }
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 }
 
@@ -154,20 +175,27 @@ const deleteMessage = () => {
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--user {
-    background-color: #10a37f;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   }
 
   &--assistant {
-    background-color: #6366f1;
+    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+  }
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
   }
 }
 
@@ -189,20 +217,23 @@ const deleteMessage = () => {
   :deep(p) {
     margin: 0; 
   }
-
   :deep(pre) {
-    background-color: #f4f4f4;
-    border-radius: 4px;
-    padding: 12px;
+    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
+    padding: 16px;
     overflow-x: auto;
-    margin: 8px 0;
+    margin: 12px 0;
+    box-shadow: var(--shadow-sm);
   }
 
   :deep(code) {
-    background-color: #f4f4f4;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    border: 1px solid var(--color-gray-200);
   }
 
   :deep(pre code) {
@@ -221,37 +252,42 @@ const deleteMessage = () => {
     padding-left: 16px;
     color: #666;
   }
-
   // Table styling for Markdown tables
   :deep(table) {
     border-collapse: collapse;
     width: 100%;
-    margin: 12px 0;
+    margin: 16px 0;
     font-size: 14px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-lg);
     overflow: hidden;
+    background: var(--color-white);
   }
 
   :deep(th), :deep(td) {
-    padding: 12px 16px;
+    padding: 16px 20px;
     text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-gray-200);
     vertical-align: top;
   }
 
   :deep(th) {
-    background-color: #f8f9fa;
+    background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
     font-weight: 600;
-    color: #374151;
-    border-bottom: 2px solid #d1d5db;
+    color: var(--color-gray-700);
+    border-bottom: 2px solid var(--color-gray-300);
   }
 
   :deep(tbody tr) {
-    transition: background-color 0.15s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     
     &:nth-child(even) {
-      background-color: #fafafa;
+      background: linear-gradient(135deg, var(--color-gray-50) 0%, rgba(248, 250, 252, 0.5) 100%);
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(224, 231, 255, 0.3) 100%);
+      transform: scale(1.005);
     }
   }
 
@@ -262,9 +298,9 @@ const deleteMessage = () => {
   // Responsive table wrapper
   :deep(.table-wrapper) {
     overflow-x: auto;
-    margin: 12px 0;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin: 16px 0;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
   }
 }
 
@@ -288,25 +324,28 @@ const deleteMessage = () => {
 .message__edit {
   .edit-textarea {
     width: 100%;
-    min-height: 80px;
-    padding: 8px;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
+    min-height: 100px;
+    padding: 16px;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-lg);
     font-family: inherit;
     font-size: inherit;
     resize: vertical;
     outline: none;
+    background: var(--color-white);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:focus {
-      border-color: #10a37f;
-      box-shadow: 0 0 0 1px #10a37f;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px var(--color-primary-light);
+      transform: scale(1.01);
     }
   }
 
   .edit-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 8px;
+    gap: 12px;
+    margin-top: 12px;
   }
 }
 
@@ -323,53 +362,70 @@ const deleteMessage = () => {
 }
 
 .action-btn {
-  padding: 4px;
+  padding: 8px;
   border: none;
-  background: none;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  color: #6b7280;
-  transition: all 0.2s;
+  color: var(--color-gray-500);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #374151;
+    background: var(--color-white);
+    color: var(--color-gray-700);
+    transform: scale(1.1);
+    box-shadow: var(--shadow-md);
   }
 
   &--danger:hover {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
+    background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
+    color: var(--color-white);
   }
 }
 
 .btn {
-  padding: 6px 12px;
+  padding: 12px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-lg);
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 
   &--sm {
-    padding: 4px 8px;
+    padding: 8px 16px;
     font-size: 12px;
   }
 
   &--primary {
-    background-color: #10a37f;
-    color: white;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
 
     &:hover {
-      background-color: #0d8f6e;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
   &--secondary {
-    background-color: #f3f4f6;
-    color: #374151;
+    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+    color: var(--color-gray-700);
+    border: 1px solid var(--color-gray-200);
 
     &:hover {
-      background-color: #e5e7eb;
+      background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-100) 100%);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
     }
   }
 }

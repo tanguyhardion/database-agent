@@ -54,18 +54,23 @@ onClickOutside(helpRef, () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border: none;
-  background: none;
-  color: #6b7280;
-  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-gray-500);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-    color: #374151;
+    background: var(--color-white);
+    color: var(--color-gray-700);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -73,47 +78,59 @@ onClickOutside(helpRef, () => {
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 8px;
-  padding: 16px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  margin-top: 12px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
   z-index: 1000;
-  min-width: 200px;
+  min-width: 240px;
 
   h3 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #111827;
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-600) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
 .shortcut-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .shortcut-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
+  padding: 8px 12px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(226, 232, 240, 0.3);
   
   span {
-    color: #6b7280;
+    color: var(--color-gray-600);
+    font-weight: 500;
   }
 }
 
 kbd {
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
-  border-radius: 3px;
-  padding: 2px 4px;
+  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-sm);
+  padding: 3px 6px;
   font-family: inherit;
-  font-size: 10px;
-  color: #374151;
+  font-size: 11px;
+  color: var(--color-gray-700);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
 }
 </style>
