@@ -182,7 +182,7 @@ const deleteMessage = () => {
   }
 
   :deep(p) {
-    margin: 8px 0;
+    margin: 0;
   }
 
   :deep(pre) {
