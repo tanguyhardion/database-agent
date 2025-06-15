@@ -6,9 +6,8 @@
     
     <div v-if="isVisible" class="help-content">
       <h3>Keyboard Shortcuts</h3>
-      <div class="shortcut-list">
-        <div class="shortcut-item">
-          <kbd>Ctrl</kbd> + <kbd>N</kbd>
+      <div class="shortcut-list">        <div class="shortcut-item">
+          <kbd>Ctrl</kbd> + <kbd>K</kbd>
           <span>New chat</span>
         </div>
         <div class="shortcut-item">

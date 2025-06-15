@@ -85,12 +85,17 @@ const isCreatingChat = ref(false)
 
 const chats = computed(() => chatStore.chats)
 const currentChatId = computed(() => chatStore.currentChatId)
+const currentChat = computed(() => chatStore.currentChat)
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
 const createNewChat = () => {
+  // If there's already an empty chat, don't create a new one
+  if (currentChat.value && currentChat.value.messages.length === 0) {
+    return;
+  }
   isCreatingChat.value = true
   chatStore.createNewChat()
   // Reset after a short delay for visual feedback

@@ -1,6 +1,7 @@
 <template>
   <div class="chat-input">
-    <div class="input-container">      <textarea
+    <div class="input-container">
+      <textarea
         ref="inputRef"
         v-model="inputMessage"
         @keydown="handleKeydown"
@@ -9,7 +10,6 @@
         class="message-input"
         rows="1"
       ></textarea>
-      
       <button
         @click="handleSubmit"
         :disabled="!canSend"
@@ -17,44 +17,53 @@
         :class="{ 'send-button--loading': isLoading }"
       >
         <Send v-if="!isLoading" :size="16" />
-        <div v-else class="spinner"></div>      </button>
+        <div v-else class="spinner"></div>
+      </button>
+    </div>
+    <div class="disclaimer">
+      ⚠️ This chatbot is experimental and can make mistakes. Please verify
+      important information. Results may be limited to a subset of available
+      data. Powered by GPT-4o.
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { Send } from 'lucide-vue-next'
+import { ref, computed, nextTick } from "vue";
+import { Send } from "lucide-vue-next";
 
 interface Emits {
-  (e: 'send', message: string): void
+  (e: "send", message: string): void;
 }
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
-const inputRef = ref<HTMLTextAreaElement>()
-const inputMessage = ref('')
-const isLoading = ref(false)
+const inputRef = ref<HTMLTextAreaElement>();
+const inputMessage = ref("");
+const isLoading = ref(false);
 
-const placeholderText = computed(() => 
-  "Send a message..."
-)
+const placeholderText = computed(() => "Send a message...");
 
-const canSend = computed(() => 
-  inputMessage.value.trim().length > 0 && !isLoading.value
-)
+const canSend = computed(
+  () => inputMessage.value.trim().length > 0 && !isLoading.value
+);
 
 // Check if device is mobile
 const isMobile = () => {
-  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return (
+    window.innerWidth <= 768 ||
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  );
 };
 
 // Handle keyboard shortcuts
 const handleKeydown = (event: KeyboardEvent) => {
   // On mobile, let default behavior handle enter key
   if (isMobile()) return;
-  
-  if (event.key === 'Enter') {
+
+  if (event.key === "Enter") {
     if (event.shiftKey) {
       // Shift+Enter: Add new line (default behavior)
       addNewLine(event);
@@ -68,58 +77,62 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 const handleInput = () => {
   // Auto-resize textarea
-  const textarea = inputRef.value
+  const textarea = inputRef.value;
   if (textarea) {
-    textarea.style.height = 'auto'
-    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
+    textarea.style.height = "auto";
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + "px";
   }
-}
+};
 
 const handleSubmit = () => {
-  if (!canSend.value) return
-  
-  const message = inputMessage.value.trim()
+  if (!canSend.value) return;
+
+  const message = inputMessage.value.trim();
   if (message) {
-    emit('send', message)
-    inputMessage.value = ''
-    
+    emit("send", message);
+    inputMessage.value = "";
+
     // Reset textarea height and immediately refocus
     nextTick(() => {
       if (inputRef.value) {
-        inputRef.value.style.height = 'auto'
-        inputRef.value.focus() // Refocus immediately after sending
+        inputRef.value.style.height = "auto";
+        inputRef.value.focus(); // Refocus immediately after sending
       }
-    })
+    });
   }
-}
+};
 
 const addNewLine = (event: KeyboardEvent) => {
   nextTick(() => {
-    handleInput()
-  })
-}
+    handleInput();
+  });
+};
 
 const setLoading = (loading: boolean) => {
-  isLoading.value = loading
-  
+  isLoading.value = loading;
+
   // When loading is finished, refocus the input to ensure it stays focused
   if (!loading) {
     nextTick(() => {
       if (inputRef.value) {
-        inputRef.value.focus()
+        inputRef.value.focus();
       }
-    })
+    });
   }
-}
+};
 
 const focus = () => {
-  inputRef.value?.focus()
-}
+  nextTick(() => {
+    if (inputRef.value) {
+      inputRef.value.focus();
+    }
+  });
+};
 
 defineExpose({
   setLoading,
-  focus
-})
+  focus,
+});
 </script>
 
 <style scoped lang="scss">
@@ -141,13 +154,11 @@ defineExpose({
   padding: 8px;
   background: var(--color-white);
   border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-xl);
   border: 1px solid rgba(226, 232, 240, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:focus-within {
     transform: translateY(-2px);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     border-color: var(--color-primary);
   }
 }
@@ -161,10 +172,12 @@ defineExpose({
   border-radius: var(--radius-xl);
   font-family: inherit;
   font-size: 16px;
-  line-height: 1.5;  resize: none;
+  line-height: 1.5;
+  resize: none;
   outline: none;
   background: transparent;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);  &::placeholder {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  &::placeholder {
     color: var(--color-gray-400);
     font-weight: 400;
   }
@@ -175,7 +188,8 @@ defineExpose({
   width: 48px;
   height: 48px;
   border: none;
-  border-radius: var(--radius-xl);  background: var(--color-primary);
+  border-radius: var(--radius-xl);
+  background: var(--color-primary);
   color: var(--color-white);
   cursor: pointer;
   display: flex;
@@ -219,5 +233,18 @@ defineExpose({
   to {
     transform: rotate(360deg);
   }
+}
+
+.disclaimer {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--color-gray-500);
+  opacity: 0.8;
+  font-weight: 400;
+  line-height: 1.4;
+  max-width: 768px;
+  margin-left: auto;
+  margin-right: auto;
 }
 </style>

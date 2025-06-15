@@ -55,6 +55,10 @@ const toggleSidebar = () => {
 };
 
 const createNewChat = () => {
+  // If there's already an empty chat, don't create a new one
+  if (currentChat.value && currentChat.value.messages.length === 0) {
+    return;
+  }
   chatStore.createNewChat();
   // Let the input handle its own focus - no need to manually focus
 };
@@ -275,8 +279,8 @@ const handleKeydown = (e: KeyboardEvent) => {
   // Skip keyboard shortcuts on mobile devices
   if (isMobile()) return;
   
-  // Ctrl/Cmd + N: New chat
-  if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+  // Ctrl/Cmd + K: New chat
+  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
     e.preventDefault();
     createNewChat();
   }
@@ -290,13 +294,13 @@ onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
   // Test connection immediately when app loads
   testConnection();
-  // Set up periodic connection check (every 30 seconds)
+  // Set up periodic connection check (every 10 seconds)
   connectionCheckInterval.value = setInterval(() => {
     // Only check if we're currently in offline mode
     if (isOfflineMode.value) {
       testConnection();
     }
-  }, 30000);
+  }, 10000);
   // Focus input on mount
   nextTick(() => {
     chatContainerRef.value?.focus();
