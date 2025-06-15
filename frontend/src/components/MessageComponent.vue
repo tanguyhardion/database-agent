@@ -87,10 +87,13 @@ const editContent = ref('')
 
 const formattedContent = computed(() => {
   if (props.message.role === 'assistant') {
-    // Parse markdown for assistant messages
-    return marked(props.message.content, { breaks: true })
+    // Parse markdown for assistant messages with proper line break handling
+    return marked(props.message.content, { 
+      breaks: true,
+      gfm: true
+    })
   }
-  // Plain text for user messages
+  // Plain text for user messages - convert newlines to <br> tags
   return props.message.content.replace(/\n/g, '<br>')
 })
 
@@ -171,6 +174,7 @@ const deleteMessage = () => {
 .message__text {
   line-height: 1.6;
   word-wrap: break-word;
+  white-space: pre-wrap; /* Preserve whitespace and line breaks */
 
   :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
     margin: 16px 0 8px 0;

@@ -166,17 +166,19 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                         # Get the final LLM response from messages
                         if "messages" in node_state and node_state["messages"]:
                             last_message = node_state["messages"][-1]
-                            if hasattr(last_message, 'content') and last_message.content:
-                                # Only use messages that don't have tool calls (final responses)
+                            if hasattr(last_message, 'content') and last_message.content:                                # Only use messages that don't have tool calls (final responses)
                                 if not (hasattr(last_message, 'tool_calls') and last_message.tool_calls):
                                     final_response = last_message.content
 
                 if final_response:
-                    words = final_response.split()
-                    for i, word in enumerate(words):
+                    # Split by words but preserve line breaks
+                    import re
+                    # Split while preserving whitespace and line breaks
+                    tokens = re.findall(r'\S+|\s+', final_response)
+                    for token in tokens:
                         data = {
                             "type": "text-delta",
-                            "textDelta": word + (" " if i < len(words) - 1 else ""),
+                            "textDelta": token,
                         }
                         yield f"data: {json.dumps(data)}\n\n"
                         # small delay for streaming effect
