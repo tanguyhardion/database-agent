@@ -40,13 +40,15 @@
           title="Edit message"
         >
           <Edit2 :size="14" />
-        </button>
-        <button
+        </button>        <button
           @click="copyMessage"
-          class="action-btn"
+          class="action-btn copy-btn"
           title="Copy message"
         >
           <Copy :size="14" />
+          <div v-if="showCopyIndicator" class="copy-indicator">
+            Copied!
+          </div>
         </button>
         <button
           @click="deleteMessage"
@@ -82,6 +84,7 @@ const emit = defineEmits<Emits>()
 
 const editTextarea = ref<HTMLTextAreaElement>()
 const editContent = ref('')
+const showCopyIndicator = ref(false)
 
 // Check if device is mobile
 const isMobile = () => {
@@ -139,6 +142,12 @@ const cancelEdit = () => {
 const copyMessage = async () => {
   try {
     await navigator.clipboard.writeText(props.message.content)
+    // Show the copy indicator
+    showCopyIndicator.value = true
+    // Hide it after 1.5 seconds
+    setTimeout(() => {
+      showCopyIndicator.value = false
+    }, 1500)
   } catch (err) {
     console.error('Failed to copy message:', err)
   }
@@ -367,6 +376,7 @@ const deleteMessage = () => {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
 
   &:hover {
     background: var(--color-white);
@@ -376,7 +386,58 @@ const deleteMessage = () => {
   }
   &--danger:hover {
     background: var(--color-error);
-    color: var(--color-white);  }
+    color: var(--color-white);
+  }
+}
+
+.copy-btn {
+  overflow: visible;
+}
+
+.copy-indicator {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-gray-800);
+  color: var(--color-white);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  animation: copyIndicatorFade 0.5s ease-in-out forwards;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--color-gray-800);
+  }
+}
+
+@keyframes copyIndicatorFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
 }
 
 .loading-indicator {
