@@ -3,9 +3,8 @@
     <div class="input-container">
       <textarea
         ref="inputRef"
-        v-model="inputMessage"
-        @keydown.enter.exact.prevent="handleSubmit"
-        @keydown.enter.shift.exact="addNewLine"
+        v-model="inputMessage"        @keydown.enter.exact.prevent="handleSubmit"
+        @keydown.enter.shift="addNewLine"
         @input="handleInput"
         placeholder="Send a message..."
         class="message-input"
@@ -76,8 +75,9 @@ const handleSubmit = () => {
   }
 }
 
-const addNewLine = () => {
-  inputMessage.value += '\n'
+const addNewLine = (event: KeyboardEvent) => {
+  // Let the default behavior happen (cursor moves to next line)
+  // without adding extra newline characters
   nextTick(() => {
     handleInput()
   })
