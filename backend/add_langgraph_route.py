@@ -171,9 +171,7 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                                     final_response = last_message.content
 
                 if final_response:
-                    # Split by words but preserve line breaks
                     import re
-                    # Split while preserving whitespace and line breaks
                     tokens = re.findall(r'\S+|\s+', final_response)
                     for token in tokens:
                         data = {

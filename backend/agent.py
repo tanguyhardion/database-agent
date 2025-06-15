@@ -21,7 +21,7 @@ API_KEY = os.getenv("API_KEY")
 AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
 
 llm = ChatMistralAI(
-    model="mistral-medium-2505" # type: ignore
+    model="mistral-small-2503" # type: ignore
 )
 
 # -------------------------- Tools --------------------------

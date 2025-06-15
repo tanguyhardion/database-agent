@@ -205,17 +205,16 @@ const deleteMessage = () => {
 }
 
 .message__text {
-  line-height: 1.6;
+  line-height: 1.3;
   word-wrap: break-word;
-  white-space: pre-wrap; /* Preserve whitespace and line breaks */
 
   :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
-    margin: 16px 0 8px 0;
+    margin: 12px 0 6px 0;
     font-weight: 600;
   }
 
   :deep(p) {
-    margin: 0; 
+    margin: 4px 0; 
   }
   :deep(pre) {
     background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
