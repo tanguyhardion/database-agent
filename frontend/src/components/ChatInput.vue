@@ -76,8 +76,6 @@ const handleSubmit = () => {
 }
 
 const addNewLine = (event: KeyboardEvent) => {
-  // Let the default behavior happen (cursor moves to next line)
-  // without adding extra newline characters
   nextTick(() => {
     handleInput()
   })
