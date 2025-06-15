@@ -1,4 +1,11 @@
 <template>
+  <!-- Mobile overlay -->
+  <div 
+    v-if="!isCollapsed" 
+    class="sidebar-overlay" 
+    @click="toggleSidebar"
+  ></div>
+  
   <div class="sidebar" :class="{ 'sidebar--collapsed': isCollapsed }">
     <div class="sidebar__header">
       <button @click="toggleSidebar" class="sidebar__toggle">
@@ -117,6 +124,11 @@ const formatTime = (date: Date) => {
     return date.toLocaleDateString()
   }
 }
+
+// Expose the toggle function for parent components
+defineExpose({
+  toggle: toggleSidebar
+})
 </script>
 
 <style scoped lang="scss">
@@ -137,16 +149,16 @@ const formatTime = (date: Date) => {
   &--collapsed {
     width: 64px;
   }
-
   @media (max-width: 768px) {
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
+    width: 280px;
     transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     
-    &--collapsed {
-      width: 280px;
+    &:not(.sidebar--collapsed) {
       transform: translateX(0);
     }
   }
@@ -324,6 +336,10 @@ const formatTime = (date: Date) => {
 
 .chat-item__count {
   white-space: nowrap;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .chat-item__actions {
@@ -429,5 +445,28 @@ const formatTime = (date: Date) => {
 
 .sidebar__content::-webkit-scrollbar-thumb:hover {
   background: #4b5563;
+}
+
+.sidebar-overlay {
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
 }
 </style>

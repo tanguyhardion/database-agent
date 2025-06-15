@@ -2,8 +2,8 @@
   <div class="chat-input">
     <div class="input-container">      <textarea
         ref="inputRef"
-        v-model="inputMessage"        @keydown.enter.exact.prevent="handleSubmit"
-        @keydown.enter.shift="addNewLine"
+        v-model="inputMessage"
+        @keydown="handleKeydown"
         @input="handleInput"
         :placeholder="placeholderText"
         class="message-input"
@@ -44,6 +44,28 @@ const placeholderText = computed(() =>
 const canSend = computed(() => 
   inputMessage.value.trim().length > 0 && !isLoading.value
 )
+
+// Check if device is mobile
+const isMobile = () => {
+  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// Handle keyboard shortcuts
+const handleKeydown = (event: KeyboardEvent) => {
+  // On mobile, let default behavior handle enter key
+  if (isMobile()) return;
+  
+  if (event.key === 'Enter') {
+    if (event.shiftKey) {
+      // Shift+Enter: Add new line (default behavior)
+      addNewLine(event);
+    } else {
+      // Enter: Submit message
+      event.preventDefault();
+      handleSubmit();
+    }
+  }
+};
 
 const handleInput = () => {
   // Auto-resize textarea

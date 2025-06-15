@@ -1,7 +1,13 @@
 <template>
   <div class="chat-header">
     <div class="chat-header-left">
-      <h2 class="chat-title">{{ title }}</h2>
+      <button 
+        class="mobile-menu-btn"
+        @click="$emit('toggle-sidebar')"
+        aria-label="Toggle menu"
+      >
+        <Menu :size="20" />
+      </button>      <h2 class="chat-title">{{ title }}</h2>
       <div class="chat-meta">{{ messageCount }} messages</div>
     </div>
     <div class="connection-status">
@@ -17,6 +23,7 @@
 </template>
 
 <script setup lang="ts">
+import { Menu } from 'lucide-vue-next'
 import HelpTooltip from "./HelpTooltip.vue";
 import ConnectionStatus from "./ConnectionStatus.vue";
 
@@ -32,6 +39,7 @@ defineProps<Props>();
 
 defineEmits<{
   'retry-connection': [];
+  'toggle-sidebar': [];
 }>();
 </script>
 
@@ -46,6 +54,36 @@ defineEmits<{
   align-items: center;
   justify-content: space-between;
   box-shadow: var(--shadow-sm);
+
+  @media (max-width: 768px) {
+    padding: 16px 20px;
+  }
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: rgba(100, 116, 139, 0.1);
+  border: none;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+
+  &:hover {
+    background: rgba(100, 116, 139, 0.2);
+    color: var(--color-gray-800);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .chat-header-left {
@@ -73,6 +111,10 @@ defineEmits<{
   background: rgba(156, 163, 175, 0.1);
   padding: 4px 12px;
   border-radius: var(--radius-full);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 .connection-status {

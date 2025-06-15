@@ -19,13 +19,10 @@
         <div v-else v-html="formattedContent"></div>
       </div>
       
-      <div v-else class="message__edit">
-        <textarea
+      <div v-else class="message__edit">        <textarea
           ref="editTextarea"
           v-model="editContent"
-          @keydown.enter.meta="saveEdit"
-          @keydown.enter.ctrl="saveEdit"
-          @keydown.escape="cancelEdit"
+          @keydown="handleKeydown"
           class="edit-textarea"
           rows="3"
         ></textarea>
@@ -85,6 +82,25 @@ const emit = defineEmits<Emits>()
 
 const editTextarea = ref<HTMLTextAreaElement>()
 const editContent = ref('')
+
+// Check if device is mobile
+const isMobile = () => {
+  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
+// Handle keyboard shortcuts
+const handleKeydown = (e: KeyboardEvent) => {
+  // Skip keyboard shortcuts on mobile devices
+  if (isMobile()) return;
+  
+  if ((e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+    e.preventDefault();
+    saveEdit();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    cancelEdit();
+  }
+};
 
 const formattedContent = computed(() => {
   if (props.message.role === 'assistant') {

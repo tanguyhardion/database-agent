@@ -1,6 +1,6 @@
 <template>
   <div class="chat-app">
-    <ChatSidebar />
+    <ChatSidebar ref="sidebarRef" />
     <div class="chat-main">
       <WelcomeScreen
         v-if="!currentChat"
@@ -10,6 +10,7 @@
         @create-chat="createNewChat"
         @create-table-demo="createTableDemo"
         @retry-connection="testConnection"
+        @toggle-sidebar="toggleSidebar"
       />
       <ChatContainer
         v-else
@@ -24,6 +25,7 @@
         @start-edit="handleStartEdit"
         @cancel-edit="handleCancelEdit"
         @retry-connection="testConnection"
+        @toggle-sidebar="toggleSidebar"
       />
     </div>
   </div>
@@ -38,6 +40,7 @@ import ChatContainer from "@/components/ChatContainer.vue";
 
 const chatStore = useChatStore();
 const chatContainerRef = ref<InstanceType<typeof ChatContainer>>();
+const sidebarRef = ref<InstanceType<typeof ChatSidebar>>();
 const isOfflineMode = ref(false);
 const connectionStatus = ref<
   "unknown" | "checking" | "connected" | "disconnected"
@@ -46,6 +49,10 @@ const connectionMessage = ref("");
 const connectionCheckInterval = ref<number | null>(null);
 
 const currentChat = computed(() => chatStore.currentChat);
+
+const toggleSidebar = () => {
+  sidebarRef.value?.toggle();
+};
 
 const createNewChat = () => {
   chatStore.createNewChat();
@@ -194,12 +201,22 @@ const testConnection = async () => {
     connectionMessage.value = "Connection test failed";
   }
 };
+
+// Check if device is mobile
+const isMobile = () => {
+  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 // Keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
+  // Skip keyboard shortcuts on mobile devices
+  if (isMobile()) return;
+  
   // Ctrl/Cmd + N: New chat
   if ((e.ctrlKey || e.metaKey) && e.key === "n") {
     e.preventDefault();
-    createNewChat();  }
+    createNewChat();
+  }
   // Escape: Focus input
   if (e.key === "Escape") {
     e.preventDefault();
@@ -279,5 +296,9 @@ watch(
   min-height: 100vh;
   position: relative;
   z-index: 1;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 </style>

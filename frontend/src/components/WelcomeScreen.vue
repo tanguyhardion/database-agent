@@ -1,5 +1,12 @@
 <template>
   <div class="welcome-screen">
+    <button 
+      class="mobile-menu-btn"
+      @click="$emit('toggle-sidebar')"
+      aria-label="Toggle menu"
+    >
+      <Menu :size="20" />
+    </button>
     <div class="welcome-content">
       <h1 class="welcome-title">Welcome to Business Data Chat</h1>
       <p class="welcome-description">
@@ -32,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Database } from "lucide-vue-next";
+import { MessageSquare, Database, Menu } from "lucide-vue-next";
 import ConnectionStatus from "./ConnectionStatus.vue";
 
 interface Props {
@@ -47,6 +54,7 @@ defineEmits<{
   'create-chat': [];
   'create-table-demo': [];
   'retry-connection': [];
+  'toggle-sidebar': [];
 }>();
 </script>
 
@@ -58,6 +66,40 @@ defineEmits<{
   justify-content: center;
   padding: 48px 32px;
   position: relative;
+}
+
+.mobile-menu-btn {
+  display: none;
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.5);
+  color: var(--color-gray-600);
+  cursor: pointer;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+
+  @media (max-width: 768px) {
+    display: flex;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 1);
+    color: var(--color-gray-800);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .welcome-content {
@@ -72,6 +114,12 @@ defineEmits<{
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
+  @media (max-width: 768px) {
+    padding: 32px 24px;
+    margin: 0 16px;
+    max-width: none;
+  }
+
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.25);
@@ -80,10 +128,15 @@ defineEmits<{
 
 .welcome-title {
   font-size: 36px;
-  font-weight: 800;
-  color: var(--color-primary);
-  margin-bottom: 20px;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin-bottom: 16px;
+  line-height: 1.2;
   letter-spacing: -0.02em;
+
+  @media (max-width: 768px) {
+    font-size: 28px;
+  }
 }
 
 .welcome-description {
@@ -116,6 +169,13 @@ defineEmits<{
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    margin: 6px 0;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
 
   &::before {
     content: "";

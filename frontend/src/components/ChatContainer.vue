@@ -1,6 +1,5 @@
 <template>
-  <div class="chat-container">
-    <ChatHeader
+  <div class="chat-container">    <ChatHeader
       class="chat-header"
       :title="chat.title"
       :message-count="chat.messages.length"
@@ -8,6 +7,7 @@
       :connection-message="connectionMessage"
       :is-offline-mode="isOfflineMode"
       @retry-connection="$emit('retry-connection')"
+      @toggle-sidebar="$emit('toggle-sidebar')"
     />
 
     <EmptyChatState
@@ -64,6 +64,7 @@ defineEmits<{
   "start-edit": [messageId: string];
   "cancel-edit": [messageId: string];
   "retry-connection": [];
+  "toggle-sidebar": [];
 }>();
 
 defineExpose({
