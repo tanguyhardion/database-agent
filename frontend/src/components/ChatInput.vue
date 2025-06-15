@@ -1,15 +1,14 @@
 <template>
   <div class="chat-input">
-    <div class="input-container">
-      <textarea
+    <div class="input-container">      <textarea
         ref="inputRef"
         v-model="inputMessage"        @keydown.enter.exact.prevent="handleSubmit"
         @keydown.enter.shift="addNewLine"
         @input="handleInput"
-        placeholder="Send a message..."
+        :placeholder="placeholderText"
         class="message-input"
+        :class="{ 'message-input--loading': isLoading }"
         rows="1"
-        :disabled="isLoading"
       ></textarea>
       
       <button
@@ -19,14 +18,7 @@
         :class="{ 'send-button--loading': isLoading }"
       >
         <Send v-if="!isLoading" :size="16" />
-        <div v-else class="spinner"></div>
-      </button>
-    </div>
-    
-    <div class="input-footer">
-      <span class="input-hint">
-        Press <kbd>Enter</kbd> to send, <kbd>Shift + Enter</kbd> for new line
-      </span>
+        <div v-else class="spinner"></div>      </button>
     </div>
   </div>
 </template>
@@ -44,6 +36,10 @@ const emit = defineEmits<Emits>()
 const inputRef = ref<HTMLTextAreaElement>()
 const inputMessage = ref('')
 const isLoading = ref(false)
+
+const placeholderText = computed(() => 
+  isLoading.value ? "AI is responding..." : "Send a message..."
+)
 
 const canSend = computed(() => 
   inputMessage.value.trim().length > 0 && !isLoading.value
@@ -134,21 +130,22 @@ defineExpose({
   border-radius: var(--radius-xl);
   font-family: inherit;
   font-size: 16px;
-  line-height: 1.5;
-  resize: none;
+  line-height: 1.5;  resize: none;
   outline: none;
   background: transparent;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-  &:disabled {
-    background-color: var(--color-gray-50);
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
   &::placeholder {
     color: var(--color-gray-400);
     font-weight: 400;
+  }
+
+  &--loading {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    
+    &::placeholder {
+      color: var(--color-primary);
+      font-weight: 500;
+    }
   }
 }
 
@@ -202,27 +199,5 @@ defineExpose({
   to {
     transform: rotate(360deg);
   }
-}
-
-.input-footer {
-  text-align: center;
-  margin-top: 12px;
-}
-
-.input-hint {
-  font-size: 13px;
-  color: var(--color-gray-500);
-  font-weight: 400;
-}
-
-kbd {
-  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--radius-sm);
-  padding: 2px 6px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  box-shadow: var(--shadow-sm);
 }
 </style>
