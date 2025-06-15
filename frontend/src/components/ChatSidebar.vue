@@ -212,7 +212,7 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 10px;  padding: 14px 20px;
-  background: var(--color-secondary);
+  background: var(--color-primary);
   color: var(--color-white);
   border: none;
   border-radius: var(--radius-xl);
@@ -228,11 +228,10 @@ defineExpose({
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s ease-in-out;
-  }
-  &:hover:not(:disabled) {
+  }  &:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
-    background: var(--color-secondary-dark);
+    background: var(--color-primary-dark);
   }
 
   &:active:not(:disabled) {
@@ -296,14 +295,13 @@ defineExpose({
   &:hover {
     background: rgba(255, 255, 255, 0.15);
     box-shadow: var(--shadow-md);
-  }
-  &--active {
-    background: var(--color-secondary);
+  }  &--active {
+    background: var(--color-primary);
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(255, 255, 255, 0.2);
 
     &:hover {
-      background: var(--color-secondary-dark);
+      background: var(--color-primary-dark);
     }
   }
 }
@@ -423,7 +421,7 @@ defineExpose({
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
-    color: var(--color-secondary);
+    color: var(--color-primary);
   }
 
   p {
