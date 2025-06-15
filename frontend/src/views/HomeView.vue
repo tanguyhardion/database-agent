@@ -142,10 +142,13 @@ const sendMessage = async (content: string) => {
       role: "assistant",
       content:
         "Sorry, I encountered an error while processing your request. Please try again.",
-    });
-  } finally {
+    });  } finally {
     chatContainerRef.value?.setLoading(false);
     scrollToBottom();
+    // Refocus the chat input after sending a message
+    nextTick(() => {
+      chatContainerRef.value?.focus();
+    });
   }
 };
 const handleMessageEdit = (messageId: string, content: string) => {

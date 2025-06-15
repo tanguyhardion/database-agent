@@ -386,46 +386,35 @@ const deleteMessage = () => {
 }
 
 .btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: var(--radius-lg);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-
-  &--sm {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
+  border: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &--primary {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    background: var(--color-primary);
     color: var(--color-white);
-    box-shadow: var(--shadow-md);
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    &:active {
-      transform: translateY(0);
+      background: var(--color-primary-dark);
     }
   }
 
   &--secondary {
-    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+    background: var(--color-gray-200);
     color: var(--color-gray-700);
-    border: 1px solid var(--color-gray-200);
 
     &:hover {
-      background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-100) 100%);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      background: var(--color-gray-300);
     }
+  }
+
+  &--sm {
+    padding: 6px 12px;
+    font-size: 12px;
   }
 }
 </style>

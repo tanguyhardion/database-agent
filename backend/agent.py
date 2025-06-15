@@ -17,9 +17,6 @@ db = SQLDatabase.from_uri(uri)
 
 from langchain_mistralai import ChatMistralAI
 
-API_KEY = os.getenv("API_KEY")
-AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
-
 llm = ChatMistralAI(
     model="mistral-small-2503" # type: ignore
 )
@@ -33,17 +30,13 @@ from langchain_community.tools import tool
 def list_tables_tool():
     """Use this tool to get all the available table names, to then choose those that might be relevant to the user's question.
     Returns:
-        str: The list of the tables available for querying
-    """
+        str: The list of the tables available for querying    """
     log_tool_call("ListTablesTool", {})
     query = f"""
             SELECT name
             FROM sqlite_master
             WHERE type='table'
     """
-        # SELECT TABLE_NAME
-        # FROM INFORMATION_SCHEMA.TABLES
-        # WHERE TABLE_TYPE = 'BASE TABLE'
     results = db.run_no_throw(query)
     if not results:
         log_tool_result("ListTablesTool", "No tables found")
@@ -94,14 +87,7 @@ def execute_query(sql_statement):
         and "COUNT(" not in stmt_upper
         and "SUM(" not in stmt_upper
         and "AVG(" not in stmt_upper
-        and "GROUP BY" not in stmt_upper
-    )
-
-    # # reject if risky
-    # if risky:
-    #     result = "Query rejected: potential to return a large number of rows. Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
-    #     log_tool_result("ExecuteQuery", result)
-    #     return result
+        and "GROUP BY" not in stmt_upper    )
 
     results = db.run_no_throw(sql_statement)
     log_tool_result("ExecuteQuery", results)
@@ -112,32 +98,6 @@ tools = [list_tables_tool, get_sample_rows, execute_query]
 tools_by_name = {tool.name: tool for tool in tools}
 llm_with_tools = llm.bind_tools(tools)
 
-# -------------------------- Helper Functions --------------------------
-
-
-def log_cost(cb):
-    """Helper function to log costs"""
-    with open("../cost/cost_history.txt", "a") as f:
-        f.write(f"{str(cb)}\n\n")
-
-    latest_cost = cb.total_cost
-    with open("../cost/total_cost.txt", "r") as f:
-        total_cost = float(f.read().strip())
-    total_cost += latest_cost
-    with open("../cost/total_cost.txt", "w") as f:
-        f.write(f"{total_cost}")
-
-
-# -------------------------- Workflow --------------------------
-
-from langgraph.graph import add_messages
-from langchain_core.messages import (
-    SystemMessage,
-    HumanMessage,
-    BaseMessage,
-)
-from langchain_community.callbacks import get_openai_callback
-
 # -------------------------- Workflow --------------------------
 
 from typing import TypedDict, Annotated, List, NotRequired
@@ -145,6 +105,7 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.runnables import RunnableConfig
+from langchain_community.callbacks import get_openai_callback
 
 
 class AgentState(TypedDict):

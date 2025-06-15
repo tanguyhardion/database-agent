@@ -38,7 +38,7 @@ const inputMessage = ref('')
 const isLoading = ref(false)
 
 const placeholderText = computed(() => 
-  isLoading.value ? "AI is responding..." : "Send a message..."
+  "Send a message..."
 )
 
 const canSend = computed(() => 

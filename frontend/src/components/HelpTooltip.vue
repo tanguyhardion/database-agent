@@ -1,5 +1,5 @@
 <template>
-  <div class="help-tooltip" :class="{ 'help-tooltip--visible': isVisible }">
+  <div class="help-tooltip">
     <button @click="toggleVisible" class="help-button" title="Keyboard shortcuts">
       <HelpCircle :size="16" />
     </button>
