@@ -81,14 +81,7 @@ defineEmits<{
 .welcome-title {
   font-size: 36px;
   font-weight: 800;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-secondary) 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-primary);
   margin-bottom: 20px;
   letter-spacing: -0.02em;
 }
@@ -110,13 +103,8 @@ defineEmits<{
 .welcome-btn {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 32px;
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-primary-dark) 100%
-  );
+  gap: 12px;  padding: 16px 32px;
+  background: var(--color-primary);
   color: var(--color-white);
   border: none;
   border-radius: var(--radius-xl);
@@ -135,13 +123,7 @@ defineEmits<{
     top: 0;
     left: -100%;
     width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
+    height: 100%;    background: rgba(255, 255, 255, 0.2);
     transition: left 0.5s;
   }
 
@@ -157,22 +139,13 @@ defineEmits<{
   &:active {
     transform: translateY(0);
   }
-
   &--secondary {
-    background: linear-gradient(
-      135deg,
-      var(--color-white) 0%,
-      var(--color-gray-50) 100%
-    );
+    background: var(--color-white);
     color: var(--color-gray-700);
     border: 2px solid var(--color-gray-200);
 
     &:hover {
-      background: linear-gradient(
-        135deg,
-        var(--color-gray-50) 0%,
-        var(--color-gray-100) 100%
-      );
+      background: var(--color-gray-50);
       border-color: var(--color-primary);
     }
   }

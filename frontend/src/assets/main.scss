@@ -54,7 +54,7 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-primary-light) 100%);
+  background: var(--color-gray-50);
   color: var(--color-gray-800);
   min-height: 100vh;
 }
@@ -102,13 +102,13 @@ input, textarea {
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-/* Common gradient utilities */
-.gradient-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+/* Common solid color utilities */
+.primary-bg {
+  background: var(--color-primary);
 }
 
-.gradient-secondary {
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+.secondary-bg {
+  background: var(--color-secondary);
 }
 
 /* Common transition utilities */

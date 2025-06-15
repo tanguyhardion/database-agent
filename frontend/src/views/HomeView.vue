@@ -251,11 +251,7 @@ watch(
 .chat-app {
   display: flex;
   height: 100vh;
-  background: linear-gradient(
-    135deg,
-    var(--color-gray-50) 0%,
-    var(--color-primary-light) 100%
-  );
+  background: var(--color-gray-50);
   position: relative;
   overflow: hidden;
 

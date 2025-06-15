@@ -143,9 +143,8 @@ const deleteMessage = () => {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-
   &--user {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(59, 130, 246, 0.1) 100%);
+    background: rgba(102, 126, 234, 0.1);
     border: 1px solid rgba(102, 126, 234, 0.2);
     margin-left: 10%;
     
@@ -155,7 +154,7 @@ const deleteMessage = () => {
   }
 
   &--assistant {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+    background: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(226, 232, 240, 0.5);
     margin-right: 10%;
     box-shadow: var(--shadow-md);
@@ -185,13 +184,12 @@ const deleteMessage = () => {
   color: white;
   box-shadow: var(--shadow-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
   &--user {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    background: var(--color-primary);
   }
 
   &--assistant {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+    background: var(--color-secondary);
   }
 
   &:hover {
@@ -216,9 +214,8 @@ const deleteMessage = () => {
 
   :deep(p) {
     margin: 4px 0; 
-  }
-  :deep(pre) {
-    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+  }  :deep(pre) {
+    background: var(--color-gray-100);
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-lg);
     padding: 16px;
@@ -228,7 +225,7 @@ const deleteMessage = () => {
   }
 
   :deep(code) {
-    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+    background: var(--color-gray-100);
     padding: 4px 8px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
@@ -270,9 +267,8 @@ const deleteMessage = () => {
     border-bottom: 1px solid var(--color-gray-200);
     vertical-align: top;
   }
-
   :deep(th) {
-    background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-gray-100) 100%);
+    background: var(--color-gray-100);
     font-weight: 600;
     color: var(--color-gray-700);
     border-bottom: 2px solid var(--color-gray-300);
@@ -282,11 +278,11 @@ const deleteMessage = () => {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     
     &:nth-child(even) {
-      background: linear-gradient(135deg, var(--color-gray-50) 0%, rgba(248, 250, 252, 0.5) 100%);
+      background: var(--color-gray-50);
     }
 
     &:hover {
-      background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(224, 231, 255, 0.3) 100%);
+      background: var(--color-primary-light);
       transform: scale(1.005);
     }
   }
@@ -362,9 +358,8 @@ const deleteMessage = () => {
     transform: scale(1.1);
     box-shadow: var(--shadow-md);
   }
-
   &--danger:hover {
-    background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
+    background: var(--color-error);
     color: var(--color-white);  }
 }
 

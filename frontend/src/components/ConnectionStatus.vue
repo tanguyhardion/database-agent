@@ -89,19 +89,23 @@ const handleClick = () => {
   -webkit-backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 120px;
+  height: 32px;
+  justify-content: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  box-sizing: border-box;
 
   &--large {
     padding: 12px 20px;
     font-size: 14px;
     gap: 10px;
+    width: 240px;
+    height: 40px;
   }
-
   &--connected {
-    background: linear-gradient(
-      135deg,
-      var(--color-secondary-light) 0%,
-      rgba(209, 250, 229, 0.8) 100%
-    );
+    background: var(--color-secondary-light);
     color: var(--color-secondary-dark);
 
     .status-dot {
@@ -113,15 +117,10 @@ const handleClick = () => {
       box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
     }
   }
-
   &--demo,
   &--disconnected,
   &--unknown {
-    background: linear-gradient(
-      135deg,
-      rgba(254, 243, 199, 0.9) 0%,
-      rgba(253, 230, 138, 0.8) 100%
-    );
+    background: rgba(254, 243, 199, 0.9);
     color: var(--color-warning);
 
     .status-dot {
@@ -134,21 +133,13 @@ const handleClick = () => {
     }
 
     &:hover {
-      background: linear-gradient(
-        135deg,
-        rgba(253, 230, 138, 0.95) 0%,
-        rgba(252, 211, 77, 0.8) 100%
-      );
+      background: rgba(253, 230, 138, 0.95);
       transform: scale(1.02);
     }
   }
 
   &--checking {
-    background: linear-gradient(
-      135deg,
-      rgba(224, 242, 254, 0.9) 0%,
-      rgba(186, 230, 253, 0.8) 100%
-    );
+    background: rgba(224, 242, 254, 0.9);
     color: var(--color-info);
 
     .status-dot {

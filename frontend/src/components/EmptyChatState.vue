@@ -69,18 +69,10 @@ defineExpose({
 .greeting-content {
   text-align: center;
   max-width: 600px;
-
   h3 {
     font-size: 28px;
     font-weight: 700;
-    background: linear-gradient(
-      135deg,
-      var(--color-gray-800) 0%,
-      var(--color-gray-600) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-gray-800);
     margin-bottom: 12px;
 
     @media (max-width: 768px) {
@@ -152,11 +144,7 @@ defineExpose({
 
 .example-btn-small {
   padding: 8px 16px;
-  background: linear-gradient(
-    135deg,
-    var(--color-white) 0%,
-    var(--color-gray-50) 100%
-  );
+  background: var(--color-white);
   border: 1px solid var(--color-gray-200);
   border-radius: var(--radius-full);
   font-size: 13px;
@@ -168,11 +156,7 @@ defineExpose({
 
   &:hover {
     border-color: var(--color-primary);
-    background: linear-gradient(
-      135deg,
-      var(--color-primary-light) 0%,
-      rgba(224, 231, 255, 0.3) 100%
-    );
+    background: var(--color-primary-light);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
   }

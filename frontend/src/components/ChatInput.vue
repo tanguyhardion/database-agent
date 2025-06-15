@@ -94,7 +94,7 @@ defineExpose({
 <style scoped lang="scss">
 .chat-input {
   padding: 24px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(226, 232, 240, 0.5);
@@ -138,9 +138,8 @@ defineExpose({
     color: var(--color-gray-400);
     font-weight: 400;
   }
-
   &--loading {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+    background: rgba(99, 102, 241, 0.05);
     
     &::placeholder {
       color: var(--color-primary);
@@ -154,8 +153,7 @@ defineExpose({
   width: 48px;
   height: 48px;
   border: none;
-  border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-xl);  background: var(--color-primary);
   color: var(--color-white);
   cursor: pointer;
   display: flex;
@@ -167,7 +165,7 @@ defineExpose({
   &:hover:not(:disabled) {
     transform: scale(1.05);
     box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--color-primary-dark) 0%, #4c51bf 100%);
+    background: var(--color-primary-dark);
   }
 
   &:active:not(:disabled) {

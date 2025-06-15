@@ -38,11 +38,7 @@ defineEmits<{
 <style lang="scss" scoped>
 .chat-header {
   padding: 24px 32px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(248, 250, 252, 0.9) 100%
-  );
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.5);
@@ -63,14 +59,7 @@ defineEmits<{
 .chat-title {
   font-size: 20px;
   font-weight: 700;
-  background: linear-gradient(
-    135deg,
-    var(--color-gray-800) 0%,
-    var(--color-gray-600) 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-gray-800);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;

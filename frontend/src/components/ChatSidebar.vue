@@ -123,7 +123,7 @@ const formatTime = (date: Date) => {
 .sidebar {
   width: 280px;
   height: 100vh;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+  background: rgba(15, 23, 42, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid rgba(71, 85, 105, 0.3);
@@ -194,9 +194,8 @@ const formatTime = (date: Date) => {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+  gap: 10px;  padding: 14px 20px;
+  background: var(--color-secondary);
   color: var(--color-white);
   border: none;
   border-radius: var(--radius-xl);
@@ -213,11 +212,10 @@ const formatTime = (date: Date) => {
     pointer-events: none;
     transition: opacity 0.15s ease-in-out;
   }
-
   &:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
-    background: linear-gradient(135deg, var(--color-secondary-dark) 0%, #047857 100%);
+    background: var(--color-secondary-dark);
   }
 
   &:active:not(:disabled) {
@@ -282,14 +280,13 @@ const formatTime = (date: Date) => {
     background: rgba(255, 255, 255, 0.15);
     box-shadow: var(--shadow-md);
   }
-
   &--active {
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
+    background: var(--color-secondary);
     box-shadow: var(--shadow-lg);
     border: 1px solid rgba(255, 255, 255, 0.2);
 
     &:hover {
-      background: linear-gradient(135deg, var(--color-secondary-dark) 0%, #047857 100%);
+      background: var(--color-secondary-dark);
     }
   }
 }
@@ -353,9 +350,8 @@ const formatTime = (date: Date) => {
   display: flex;
   align-items: center;
   justify-content: center;
-
   &:hover {
-    background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
+    background: var(--color-error);
     color: var(--color-white);
     transform: scale(1.1);
     box-shadow: var(--shadow-md);
@@ -402,15 +398,11 @@ const formatTime = (date: Date) => {
   }
 }
 
-.app-info {
-  h4 {
+.app-info {  h4 {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 4px;
-    background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-secondary-dark) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-secondary);
   }
 
   p {

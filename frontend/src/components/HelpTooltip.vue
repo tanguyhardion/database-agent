@@ -1,5 +1,5 @@
 <template>
-  <div class="help-tooltip">
+  <div class="help-tooltip" ref="helpRef">
     <button @click="toggleVisible" class="help-button" title="Keyboard shortcuts">
       <HelpCircle :size="16" />
     </button>
@@ -88,15 +88,11 @@ onClickOutside(helpRef, () => {
   box-shadow: var(--shadow-xl);
   z-index: 1000;
   min-width: 240px;
-
   h3 {
     margin: 0 0 16px 0;
     font-size: 16px;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-600) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-gray-800);
   }
 }
 
@@ -123,7 +119,7 @@ onClickOutside(helpRef, () => {
 }
 
 kbd {
-  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-50) 100%);
+  background: var(--color-gray-100);
   border: 1px solid var(--color-gray-300);
   border-radius: var(--radius-sm);
   padding: 3px 6px;
