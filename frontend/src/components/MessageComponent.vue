@@ -7,13 +7,14 @@
       <div v-else class="avatar avatar--assistant">
         <Bot :size="16" />
       </div>
-    </div>
-    
-    <div class="message__content">
+    </div>      <div class="message__content">
       <div v-if="!message.isEditing" class="message__text">
-        <div v-if="message.isStreaming" class="streaming">
-          <div v-html="formattedContent"></div>
-          <span class="cursor">|</span>
+        <div v-if="message.isLoading" class="loading-indicator">
+          <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
         </div>
         <div v-else v-html="formattedContent"></div>
       </div>
@@ -34,7 +35,7 @@
         </div>
       </div>
       
-      <div v-if="!message.isEditing && !message.isStreaming" class="message__actions">
+      <div v-if="!message.isEditing && !message.isLoading" class="message__actions">
         <button
           v-if="message.role === 'user'"
           @click="startEdit"
@@ -303,23 +304,6 @@ const deleteMessage = () => {
   }
 }
 
-.streaming {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.cursor {
-  animation: blink 1s infinite;
-  font-weight: bold;
-  color: #10a37f;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
 .message__edit {
   .edit-textarea {
     width: 100%;
@@ -381,7 +365,51 @@ const deleteMessage = () => {
 
   &--danger:hover {
     background: linear-gradient(135deg, var(--color-error) 0%, #dc2626 100%);
-    color: var(--color-white);
+    color: var(--color-white);  }
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 0;
+  color: var(--color-gray-600);
+}
+
+.loading-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  animation: loading-bounce 1.4s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loading-text {
+  font-size: 14px;
+  font-style: italic;
+}
+
+@keyframes loading-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 

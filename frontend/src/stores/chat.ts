@@ -6,8 +6,8 @@ export interface Message {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
-  isStreaming?: boolean
   isEditing?: boolean
+  isLoading?: boolean
 }
 
 export interface Chat {
@@ -157,7 +157,6 @@ export const useChatStore = defineStore('chat', () => {
       message.isEditing = true
     }
   }
-
   const cancelMessageEditing = (chatId: string, messageId: string) => {
     const chat = chats.value.find(c => c.id === chatId)
     if (!chat) return
@@ -168,40 +167,58 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  const streamMessage = (chatId: string, messageId: string, chunk: string) => {
+  const addLoadingMessage = (chatId: string) => {
     const chat = chats.value.find(c => c.id === chatId)
-    if (!chat) return
+    if (!chat) return null
 
-    const message = chat.messages.find(m => m.id === messageId)
-    if (message) {
-      message.content += chunk
+    const loadingMessage: Message = {
+      id: generateId(),
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isLoading: true
     }
+
+    chat.messages.push(loadingMessage)
+    chat.updatedAt = new Date()
+    saveToStorage()
+    return loadingMessage
   }
 
-  const finishStreaming = (chatId: string, messageId: string) => {
+  const updateLoadingMessage = (chatId: string, messageId: string, content: string) => {
     const chat = chats.value.find(c => c.id === chatId)
     if (!chat) return
 
     const message = chat.messages.find(m => m.id === messageId)
     if (message) {
-      message.isStreaming = false
+      message.content = content
+      message.isLoading = false
+      chat.updatedAt = new Date()
       saveToStorage()
     }
   }
 
-  // Load data on initialization
+  const removeLoadingMessage = (chatId: string, messageId: string) => {
+    const chat = chats.value.find(c => c.id === chatId)
+    if (!chat) return
+
+    const index = chat.messages.findIndex(m => m.id === messageId)
+    if (index !== -1) {
+      chat.messages.splice(index, 1)
+      chat.updatedAt = new Date()
+      saveToStorage()
+    }
+  }// Load data on initialization
   loadFromStorage()
 
   // Initialize with a default chat if no chats exist
   if (chats.value.length === 0) {
     createNewChat()
   }
-
   return {
     chats,
     currentChatId,
-    currentChat,
-    loadFromStorage,
+    currentChat,    loadFromStorage,
     createNewChat,
     selectChat,
     deleteChat,
@@ -210,7 +227,8 @@ export const useChatStore = defineStore('chat', () => {
     deleteMessage,
     startMessageEditing,
     cancelMessageEditing,
-    streamMessage,
-    finishStreaming
+    addLoadingMessage,
+    updateLoadingMessage,
+    removeLoadingMessage
   }
 })

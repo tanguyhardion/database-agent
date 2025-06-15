@@ -16,25 +16,29 @@ export class ChatService {
     | "checking"
     | "connected"
     | "disconnected" = "unknown";
-
-  async *streamChat(
+  async sendMessage(
     messages: Message[]
-  ): AsyncGenerator<string, void, unknown> {    // Check if we should use offline mode (demo mode)
+  ): Promise<string> {
+    // Check if we should use offline mode (demo mode)
     if (this.isOfflineMode) {
-      yield* this.getDemoResponse(messages);
-      return;
-    }// Transform messages to the expected format
+      return this.getDemoResponse(messages);
+    }
+
+    // Transform messages to the expected format
     const transformedMessages = messages.map((msg) => ({
       role: msg.role,
       content:
         msg.role === "user"
           ? [{ type: "text", text: msg.content }]
           : [{ type: "text", text: msg.content }],
-    }));    const requestBody: ChatRequest = {
+    }));
+
+    const requestBody: ChatRequest = {
       system: "You are a helpful assistant for SQL queries.",
       tools: [],
       messages: transformedMessages,
     };
+
     try {
       const response = await fetch(`${this.baseUrl}/api/chat`, {
         method: "POST",
@@ -43,57 +47,33 @@ export class ChatService {
         },
         body: JSON.stringify(requestBody),
       });
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body");
+
+      const result = await response.json();
+      
+      if (result.type === "error") {
+        throw new Error(result.content);
       }
-      const decoder = new TextDecoder();
-      let buffer = "";
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() || "";
-          for (const line of lines) {
-            if (line.trim() === "") continue;
-            if (line.startsWith("data: ")) {
-              const data = line.slice(6);
-              if (data === "[DONE]") {
-                return;
-              }
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.type === "text-delta" && parsed.textDelta) {
-                  yield parsed.textDelta;
-                }
-              } catch (e) {
-                // Skip invalid JSON
-                console.warn("Invalid JSON in stream:", data);
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock();
-      }
+      
+      return result.content;
+
     } catch (error) {
-      console.error("Error in streamChat:", error);
+      console.error("Error in sendMessage:", error);
       // Fall back to offline mode if connection fails
-      if (error instanceof TypeError && error.message.includes("fetch")) {        console.log("Backend not available, switching to demo mode");
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        console.log("Backend not available, switching to demo mode");
         this.isOfflineMode = true;
-        yield* this.getDemoResponse(messages);
-        return;
+        return this.getDemoResponse(messages);
       }
       throw error;
     }
-  }  private async *getDemoResponse(
-    messages: Message[]
-  ): AsyncGenerator<string, void, unknown> {
+  }
+
+  private getDemoResponse(
+    messages: Message[]  ): string {
     const lastMessage = messages[messages.length - 1];
     const userQuery = lastMessage?.content.toLowerCase() || "";
     let response = "";
@@ -132,14 +112,7 @@ I'm analyzing your request and will:
 To get started with live data, ensure your backend server is running on http://localhost:8000`;
     }
 
-    // Simulate streaming by yielding chunks
-    const words = response.split(" ");
-    for (let i = 0; i < words.length; i++) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, 50 + Math.random() * 100)
-      );
-      yield words[i] + (i < words.length - 1 ? " " : "");
-    }
+    return response;
   }
   setOfflineMode(offline: boolean) {
     this.isOfflineMode = offline;

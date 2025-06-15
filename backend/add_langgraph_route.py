@@ -1,19 +1,13 @@
-from assistant_stream import create_run, RunController
-from assistant_stream.serialization import DataStreamResponse
 from langchain_core.messages import (
     HumanMessage,
-    AIMessageChunk,
     AIMessage,
     ToolMessage,
     SystemMessage,
     BaseMessage,
 )
 from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Literal, Union, Optional, Any
-import json
-import asyncio
 
 class LanguageModelTextPart(BaseModel):
     type: Literal["text"]
@@ -147,65 +141,42 @@ class ChatRequest(BaseModel):
 def add_langgraph_route(app: FastAPI, graph, path: str):
     async def chat_completions(request: ChatRequest):
         inputs = convert_to_langchain_messages(request.messages)
-
-        async def generate_sse():
-            try:
-                final_response = ""
-
-                async for event in graph.astream(
-                    {"messages": inputs},
-                    {
-                        "configurable": {
-                            "system": request.system,
-                            "frontend_tools": request.tools,
-                        }
-                    },
-                    stream_mode="updates",
-                ):
-                    for node_name, node_state in event.items():
-                        # Get the final LLM response from messages
-                        if "messages" in node_state and node_state["messages"]:
-                            last_message = node_state["messages"][-1]
-                            if hasattr(last_message, 'content') and last_message.content:                                # Only use messages that don't have tool calls (final responses)
-                                if not (hasattr(last_message, 'tool_calls') and last_message.tool_calls):
-                                    final_response = last_message.content
-
-                if final_response:
-                    import re
-                    tokens = re.findall(r'\S+|\s+', final_response)
-                    for token in tokens:
-                        data = {
-                            "type": "text-delta",
-                            "textDelta": token,
-                        }
-                        yield f"data: {json.dumps(data)}\n\n"
-                        # small delay for streaming effect
-                        await asyncio.sleep(0.05)
-                else:
-                    error_data = {
-                        "type": "text-delta",
-                        "textDelta": "No response was generated. Please try again.",
+        
+        try:
+            # Run the graph and get the final response
+            final_result = await graph.ainvoke(
+                {"messages": inputs},
+                {
+                    "configurable": {
+                        "system": request.system,
+                        "frontend_tools": request.tools,
                     }
-                    yield f"data: {json.dumps(error_data)}\n\n"
-
-                yield f"data: [DONE]\n\n"
-
-            except Exception as e:
-                error_data = {"type": "text-delta", "textDelta": f"Error: {str(e)}"}
-                yield f"data: {json.dumps(error_data)}\n\n"
-                yield f"data: [DONE]\n\n"
-
-        return StreamingResponse(
-            generate_sse(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            },
-        )
+                }
+            )
+            
+            # Extract the final response from the graph result
+            final_response = ""
+            if "messages" in final_result and final_result["messages"]:
+                last_message = final_result["messages"][-1]
+                if hasattr(last_message, 'content') and last_message.content:
+                    # Only use messages that don't have tool calls (final responses)
+                    if not (hasattr(last_message, 'tool_calls') and last_message.tool_calls):
+                        final_response = last_message.content
+            
+            if not final_response:
+                final_response = "No response was generated. Please try again."
+            
+            # Return simple JSON response instead of streaming
+            return {
+                "type": "text",
+                "content": final_response
+            }
+            
+        except Exception as e:
+            return {
+                "type": "error", 
+                "content": f"Error: {str(e)}"
+            }
 
     async def chat_options():
         return {"message": "OK"}

@@ -106,25 +106,24 @@ const sendMessage = async (content: string) => {
     content,
   });
   if (!userMessage) return;
+
+  // Add loading message for AI response
+  const loadingMessage = chatStore.addLoadingMessage(currentChat.value.id);
+  if (!loadingMessage) return;
+
   // Scroll to bottom
   scrollToBottom();
   // Set loading state
   chatContainerRef.value?.setLoading(true);
   try {
-    // Add assistant message with streaming
-    const assistantMessage = chatStore.addMessage(currentChat.value.id, {
-      role: "assistant",
-      content: "",
-      isStreaming: true,
-    });
-    if (!assistantMessage) return; // Stream response
-    const stream = chatService.streamChat(
-      currentChat.value.messages.slice(0, -1).concat([userMessage])
+    // Send message and get response
+    const response = await chatService.sendMessage(
+      currentChat.value.messages.slice(0, -1).filter(m => !m.isLoading).concat([userMessage])
     );
-    for await (const chunk of stream) {
-      chatStore.streamMessage(currentChat.value.id, assistantMessage.id, chunk);
-      scrollToBottom();
-    }
+    
+    // Update the loading message with the actual response
+    chatStore.updateLoadingMessage(currentChat.value.id, loadingMessage.id, response);
+    
     // Update offline mode status
     isOfflineMode.value = chatService.isInOfflineMode();
     connectionStatus.value = chatService.getConnectionStatus();
@@ -133,16 +132,17 @@ const sendMessage = async (content: string) => {
     } else {
       connectionMessage.value = "Connected to backend";
     }
-    // Finish streaming
-    chatStore.finishStreaming(currentChat.value.id, assistantMessage.id);
+    
   } catch (error) {
     console.error("Error sending message:", error);
-    // Add error message
+    // Remove loading message and add error message
+    chatStore.removeLoadingMessage(currentChat.value.id, loadingMessage.id);
     chatStore.addMessage(currentChat.value.id, {
       role: "assistant",
       content:
         "Sorry, I encountered an error while processing your request. Please try again.",
-    });  } finally {
+    });
+  } finally {
     chatContainerRef.value?.setLoading(false);
     scrollToBottom();
     // Refocus the chat input after sending a message
