@@ -4,6 +4,7 @@ from agent import graph
 from add_langgraph_route import add_langgraph_route
 
 app = FastAPI()
+
 # cors
 app.add_middleware(
     CORSMiddleware,
@@ -18,5 +19,5 @@ add_langgraph_route(app, graph, "/api/chat")
 
 if __name__ == "__main__":
     import uvicorn
-
+    
     uvicorn.run(app)

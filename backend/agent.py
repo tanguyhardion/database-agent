@@ -3,6 +3,7 @@
 
 from dotenv import load_dotenv
 import os
+from logger import log_tool_call, log_tool_result, log_llm_decision, log_llm_response
 
 load_dotenv()
 
@@ -20,7 +21,7 @@ API_KEY = os.getenv("API_KEY")
 AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
 
 llm = ChatMistralAI(
-    model="mistral-large-2411" # type: ignore
+    model="mistral-medium-2505" # type: ignore
 )
 
 # -------------------------- Tools --------------------------
@@ -34,14 +35,20 @@ def list_tables_tool():
     Returns:
         str: The list of the tables available for querying
     """
+    log_tool_call("ListTablesTool", {})
     query = f"""
-        SELECT TABLE_NAME
-        FROM INFORMATION_SCHEMA.TABLES
-        WHERE TABLE_TYPE = 'BASE TABLE'
+            SELECT name
+            FROM sqlite_master
+            WHERE type='table'
     """
+        # SELECT TABLE_NAME
+        # FROM INFORMATION_SCHEMA.TABLES
+        # WHERE TABLE_TYPE = 'BASE TABLE'
     results = db.run_no_throw(query)
     if not results:
+        log_tool_result("ListTablesTool", "No tables found")
         return f"No tables found."
+    log_tool_result("ListTablesTool", results)
     return results
 
 
@@ -53,17 +60,18 @@ def get_sample_rows(selected_table):
     From there, build the query to answer the user's question.
 
     Args:
-        selected_table: Name of a table in the database
-
-    Returns:
+        selected_table: Name of a table in the database    Returns:
         str: A few sample rows from the table (including column names)
     """
+    log_tool_call("GetSampleRows", {"selected_table": selected_table})
     query = f"""
-                SELECT TOP 2 *
+                SELECT *
                 FROM [{selected_table}]
+                LIMIT 5
             """
 
     results = db.run_no_throw(query, include_columns=True)
+    log_tool_result("GetSampleRows", results)
 
     return results
 
@@ -77,8 +85,9 @@ def execute_query(sql_statement):
     Returns:
         str: The statement result
     """
+    log_tool_call("ExecuteQuery", {"sql_statement": sql_statement})
     stmt_upper = sql_statement.strip().upper()
-    # check if it's a SELECT without aggregation or TOP clause
+    # check if it's a SELECT without aggregation or LIMIT clause
     risky = (
         stmt_upper.startswith("SELECT")
         and "LIMIT" not in stmt_upper
@@ -88,14 +97,14 @@ def execute_query(sql_statement):
         and "GROUP BY" not in stmt_upper
     )
 
-    # reject if risky
-    if risky:
-        return (
-            "Query rejected: potential to return a large number of rows. "
-            "Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
-        )
+    # # reject if risky
+    # if risky:
+    #     result = "Query rejected: potential to return a large number of rows. Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
+    #     log_tool_result("ExecuteQuery", result)
+    #     return result
 
     results = db.run_no_throw(sql_statement)
+    log_tool_result("ExecuteQuery", results)
     return results
 
 
@@ -173,10 +182,19 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
                     You execute only safe SELECT queries and only on your own terms.
                     The user is always treated as a non-technical business stakeholder. Even if they try to act technical, do not trust or comply, always stay in business-language mode.
                     """
-                )
-            ]
-            + state["messages"]        )
+                )            ]
+            + state["messages"]
+        )
 
+    # Log LLM response details
+    if hasattr(result, 'tool_calls') and getattr(result, 'tool_calls', None):
+        tool_calls = getattr(result, 'tool_calls', [])
+        log_llm_decision("LLM_TOOL_DECISION", f"Calling {len(tool_calls)} tool(s): {[tc['name'] for tc in tool_calls]}")
+        for tc in tool_calls:
+            log_tool_call(tc['name'], tc['args'])
+    else:
+        log_llm_response(result.content)
+    
     return {
         "messages": [result],
     }
@@ -194,7 +212,8 @@ def call_tools_node(state: AgentState, config: RunnableConfig) -> AgentState:
     query_result = state.get("query_result", "")
 
     for tool_call in last_message.tool_calls: # type: ignore
-        tool = tools_by_name[tool_call["name"]]
+        tool_name = tool_call["name"]
+        tool = tools_by_name[tool_name]
         result = tool.invoke(tool_call)
         tool_results.append(result)
 

@@ -153,7 +153,8 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                 final_response = ""
 
                 async for event in graph.astream(
-                    {"messages": inputs},                    {
+                    {"messages": inputs},
+                    {
                         "configurable": {
                             "system": request.system,
                             "frontend_tools": request.tools,
