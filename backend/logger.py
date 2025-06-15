@@ -21,10 +21,10 @@ def log_tool_call(tool_name, args):
 
 def log_tool_result(tool_name, result):
     """Log results from tool executions"""
-    result_str = str(result)[:500]  # Limit to 500 chars
+    result_str = str(result)
     logger.info(f"TOOL_RESULT: {tool_name} returned: {result_str}")
 
 def log_llm_response(response):
     """Log final LLM response"""
-    response_str = str(response)[:500]  # Limit to 500 chars
+    response_str = str(response)
     logger.info(f"LLM_RESPONSE: {response_str}")

@@ -88,10 +88,15 @@ const editContent = ref('')
 const formattedContent = computed(() => {
   if (props.message.role === 'assistant') {
     // Parse markdown for assistant messages with proper line break handling
-    return marked(props.message.content, { 
+    const htmlContent = marked(props.message.content, { 
       breaks: true,
-      gfm: true
-    })
+      gfm: true // GitHub Flavored Markdown includes table support
+    }) as string
+    
+    // Wrap tables in a responsive container
+    return htmlContent
+      .replace(/<table>/g, '<div class="table-wrapper"><table>')
+      .replace(/<\/table>/g, '</table></div>')
   }
   // Plain text for user messages - convert newlines to <br> tags
   return props.message.content.replace(/\n/g, '<br>')
@@ -215,6 +220,51 @@ const deleteMessage = () => {
     margin: 8px 0;
     padding-left: 16px;
     color: #666;
+  }
+
+  // Table styling for Markdown tables
+  :deep(table) {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  :deep(th), :deep(td) {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+
+  :deep(th) {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 2px solid #d1d5db;
+  }
+
+  :deep(tbody tr) {
+    transition: background-color 0.15s ease;
+    
+    &:nth-child(even) {
+      background-color: #fafafa;
+    }
+  }
+
+  :deep(tbody tr:last-child td) {
+    border-bottom: none;
+  }
+
+  // Responsive table wrapper
+  :deep(.table-wrapper) {
+    overflow-x: auto;
+    margin: 12px 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 }
 

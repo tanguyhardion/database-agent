@@ -35,10 +35,13 @@
               <div class="status-dot"></div>
               Connected to backend
             </div>
-          </div>
-          <button @click="createNewChat" class="welcome-btn">
+          </div>          <button @click="createNewChat" class="welcome-btn">
             <MessageSquare :size="20" />
             Start New Chat
+          </button>
+          <button @click="createTableDemo" class="welcome-btn welcome-btn--secondary">
+            <Database :size="20" />
+            View Table Demo
           </button>
         </div>
       </div>
@@ -152,6 +155,48 @@ const createNewChat = () => {
   chatStore.createNewChat();
   nextTick(() => {
     chatInput.value?.focus();
+  });
+};
+
+const createTableDemo = () => {
+  chatStore.createNewChat();
+  if (!currentChat.value) return;
+  
+  // Add user message asking for data
+  chatStore.addMessage(currentChat.value.id, {
+    role: "user",
+    content: "Show me a sample data table",
+  });
+  
+  // Add assistant response with a sample table
+  const tableContent = `Here's a sample data table showing sales performance:
+
+| Product | Sales ($) | Units Sold | Growth (%) |
+|---------|-----------|------------|------------|
+| Product A | 125,000 | 450 | +15.2% |
+| Product B | 89,500 | 320 | +8.7% |
+| Product C | 156,000 | 612 | +22.1% |
+| Product D | 74,200 | 185 | -3.4% |
+| Product E | 203,800 | 890 | +31.5% |
+
+**Key Insights:**
+- Product E shows the highest growth at 31.5%
+- Product D is the only product with negative growth
+- Total revenue across all products: $648,500
+
+You can also ask me to:
+- Filter the data by specific criteria
+- Show different time periods
+- Export data in various formats
+- Create visualizations from the data`;
+
+  chatStore.addMessage(currentChat.value.id, {
+    role: "assistant",
+    content: tableContent,
+  });
+  
+  nextTick(() => {
+    scrollToBottom();
   });
 };
 const sendMessage = async (content: string) => {
@@ -396,8 +441,18 @@ watch(
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin: 4px;
+  
   &:hover {
     background-color: #0d8f6e;
+  }
+  
+  &--secondary {
+    background-color: #6366f1;
+    
+    &:hover {
+      background-color: #5855eb;
+    }
   }
 }
 .chat-container {
