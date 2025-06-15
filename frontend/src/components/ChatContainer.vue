@@ -1,6 +1,7 @@
 <template>
   <div class="chat-container">
     <ChatHeader
+      class="chat-header"
       :title="chat.title"
       :message-count="chat.messages.length"
       :connection-status="connectionStatus"
@@ -8,13 +9,13 @@
       :is-offline-mode="isOfflineMode"
       @retry-connection="$emit('retry-connection')"
     />
-    
+
     <EmptyChatState
       v-if="chat.messages.length === 0"
       ref="emptyChatRef"
       @send="$emit('send', $event)"
     />
-    
+
     <div v-else class="chat-with-messages">
       <div ref="messagesContainer" class="messages-container">
         <div class="messages-list">
@@ -36,12 +37,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { Chat } from '@/stores/chat';
-import ChatHeader from './ChatHeader.vue';
-import EmptyChatState from './EmptyChatState.vue';
-import MessageComponent from './MessageComponent.vue';
-import ChatInput from './ChatInput.vue';
+import { ref } from "vue";
+import type { Chat } from "@/stores/chat";
+import ChatHeader from "./ChatHeader.vue";
+import EmptyChatState from "./EmptyChatState.vue";
+import MessageComponent from "./MessageComponent.vue";
+import ChatInput from "./ChatInput.vue";
 
 interface Props {
   chat: Chat;
@@ -57,12 +58,12 @@ const chatInputRef = ref<InstanceType<typeof ChatInput>>();
 const emptyChatRef = ref<InstanceType<typeof EmptyChatState>>();
 
 defineEmits<{
-  'send': [message: string];
-  'edit': [messageId: string, content: string];
-  'delete': [messageId: string];
-  'start-edit': [messageId: string];
-  'cancel-edit': [messageId: string];
-  'retry-connection': [];
+  send: [message: string];
+  edit: [messageId: string, content: string];
+  delete: [messageId: string];
+  "start-edit": [messageId: string];
+  "cancel-edit": [messageId: string];
+  "retry-connection": [];
 }>();
 
 defineExpose({
@@ -84,7 +85,7 @@ defineExpose({
     if (messagesContainer.value) {
       messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }
-  }
+  },
 });
 </script>
 
@@ -100,6 +101,12 @@ defineExpose({
   flex-direction: column;
   flex: 1;
   min-height: 0;
+}
+
+.chat-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .messages-container {
