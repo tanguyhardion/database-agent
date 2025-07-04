@@ -64,7 +64,7 @@ defineExpose({
   gap: 24px;
   min-height: 0;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     padding: 16px;
     gap: 16px;
   }
@@ -79,7 +79,7 @@ defineExpose({
     color: var(--color-gray-800);
     margin-bottom: 12px;
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       font-size: 24px;
     }
   }
@@ -91,7 +91,7 @@ defineExpose({
     margin-bottom: 0;
     font-weight: 400;
 
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       font-size: 16px;
     }
   }
@@ -140,7 +140,7 @@ defineExpose({
   gap: 8px;
   margin-top: 16px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     gap: 6px;
     margin-top: 12px;
   }
@@ -165,7 +165,7 @@ defineExpose({
     box-shadow: var(--shadow-md);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     padding: 6px 12px;
     font-size: 12px;
   }

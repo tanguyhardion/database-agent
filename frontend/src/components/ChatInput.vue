@@ -149,7 +149,7 @@ defineExpose({
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  max-width: 768px;
+  max-width: 992px;
   margin: 0 auto;
   padding: 8px;
   background: var(--color-white);
@@ -243,7 +243,7 @@ defineExpose({
   opacity: 0.8;
   font-weight: 400;
   line-height: 1.4;
-  max-width: 768px;
+  max-width: 992px;
   margin-left: auto;
   margin-right: auto;
 }

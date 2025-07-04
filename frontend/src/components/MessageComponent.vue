@@ -173,7 +173,7 @@ const deleteMessage = () => {
     border: 1px solid rgba(102, 126, 234, 0.2);
     margin-left: 10%;
     
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       margin-left: 5%;
     }
   }
@@ -184,7 +184,7 @@ const deleteMessage = () => {
     margin-right: 10%;
     box-shadow: var(--shadow-md);
     
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       margin-right: 5%;
     }
   }

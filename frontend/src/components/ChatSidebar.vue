@@ -98,6 +98,10 @@ const createNewChat = () => {
   }
   isCreatingChat.value = true
   chatStore.createNewChat()
+  
+  // Auto-close menu after creating new chat
+  isCollapsed.value = true
+  
   // Reset after a short delay for visual feedback
   setTimeout(() => {
     isCreatingChat.value = false
@@ -106,6 +110,9 @@ const createNewChat = () => {
 
 const selectChat = (chatId: string) => {
   chatStore.selectChat(chatId)
+  
+  // Auto-close menu after selecting chat
+  isCollapsed.value = true
 }
 
 const deleteChat = (chatId: string) => {
@@ -154,7 +161,7 @@ defineExpose({
   &--collapsed {
     width: 64px;
   }
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     position: fixed;
     top: 0;
     left: 0;
@@ -340,7 +347,7 @@ defineExpose({
 .chat-item__count {
   white-space: nowrap;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: none;
   }
 }
@@ -453,7 +460,7 @@ defineExpose({
 .sidebar-overlay {
   display: none;
   
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: block;
     position: fixed;
     top: 0;
