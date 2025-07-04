@@ -7,6 +7,18 @@
     >
       <Menu :size="20" />
     </button>
+    
+    <!-- Collapsed menu "+" button -->
+    <button 
+      v-if="isCollapsed"
+      class="collapsed-new-chat-btn"
+      @click="$emit('create-chat')"
+      aria-label="Create new chat"
+      title="Create new chat"
+    >
+      <Plus :size="20" />
+    </button>
+    
     <div class="welcome-content">
       <h1 class="welcome-title">Welcome to Business Data Chat</h1>
       <p class="welcome-description">
@@ -39,7 +51,8 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Database, Menu } from "lucide-vue-next";
+import { MessageSquare, Database, Menu, Plus } from "lucide-vue-next";
+import { useStorage } from '@vueuse/core';
 import ConnectionStatus from "./ConnectionStatus.vue";
 
 interface Props {
@@ -56,6 +69,8 @@ defineEmits<{
   'retry-connection': [];
   'toggle-sidebar': [];
 }>();
+
+const isCollapsed = useStorage('sidebar-collapsed', false);
 </script>
 
 <style lang="scss" scoped>
@@ -87,7 +102,7 @@ defineEmits<{
   box-shadow: var(--shadow-md);
   z-index: 10;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: flex;
   }
 
@@ -99,6 +114,37 @@ defineEmits<{
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+.collapsed-new-chat-btn {
+  display: flex;
+  position: absolute;
+  top: 24px;
+  left: 80px; /* Position it next to the mobile menu button */
+  background: var(--color-primary);
+  border: none;
+  color: var(--color-white);
+  cursor: pointer;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+
+  &:hover {
+    background: var(--color-primary-dark);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (max-width: 992px) {
+    display: none;
   }
 }
 
@@ -114,7 +160,7 @@ defineEmits<{
   border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     padding: 32px 24px;
     margin: 0 16px;
     max-width: none;
@@ -134,7 +180,7 @@ defineEmits<{
   line-height: 1.2;
   letter-spacing: -0.02em;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     font-size: 28px;
   }
 }
@@ -170,7 +216,7 @@ defineEmits<{
   position: relative;
   overflow: hidden;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     width: 100%;
     margin: 6px 0;
     padding: 14px 24px;

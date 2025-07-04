@@ -26,6 +26,7 @@
         @cancel-edit="handleCancelEdit"
         @retry-connection="testConnection"
         @toggle-sidebar="toggleSidebar"
+        @create-new-chat="createNewChat"
       />
     </div>
   </div>
@@ -33,12 +34,14 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useChatStore } from "@/stores/chat";
+import { useStorage } from '@vueuse/core';
 import { chatService } from "@/services/chat";
 import ChatSidebar from "@/components/ChatSidebar.vue";
 import WelcomeScreen from "@/components/WelcomeScreen.vue";
 import ChatContainer from "@/components/ChatContainer.vue";
 
 const chatStore = useChatStore();
+const isCollapsed = useStorage('sidebar-collapsed', false);
 const chatContainerRef = ref<InstanceType<typeof ChatContainer>>();
 const sidebarRef = ref<InstanceType<typeof ChatSidebar>>();
 const isOfflineMode = ref(false);
@@ -60,6 +63,10 @@ const createNewChat = () => {
     return;
   }
   chatStore.createNewChat();
+  
+  // Auto-close menu after creating new chat
+  isCollapsed.value = true;
+  
   // Let the input handle its own focus - no need to manually focus
 };
 
@@ -271,7 +278,7 @@ const testConnection = async () => {
 
 // Check if device is mobile
 const isMobile = () => {
-  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return window.innerWidth <= 992 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
 // Keyboard shortcuts
@@ -351,7 +358,7 @@ watch(
     pointer-events: none;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     flex-direction: column;
   }
 }
@@ -364,7 +371,7 @@ watch(
   position: relative;
   z-index: 1;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     width: 100%;
   }
 }

@@ -6,7 +6,20 @@
         aria-label="Toggle menu"
       >
         <Menu :size="20" />
-      </button>      <h2 class="chat-title">{{ title }}</h2>
+      </button>
+      
+      <!-- Collapsed menu "+" button -->
+      <button 
+        v-if="isCollapsed"
+        class="collapsed-new-chat-btn"
+        @click="$emit('create-new-chat')"
+        aria-label="Create new chat"
+        title="Create new chat"
+      >
+        <Plus :size="20" />
+      </button>
+      
+      <h2 class="chat-title">{{ title }}</h2>
       <div class="chat-meta">{{ messageCount }} messages</div>
       <div class="cost-meta" v-if="totalCost !== null">
         ${{ totalCost.toFixed(4) }}
@@ -25,8 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { Menu } from 'lucide-vue-next'
+import { Menu, Plus } from 'lucide-vue-next'
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useStorage } from '@vueuse/core'
 import HelpTooltip from "./HelpTooltip.vue";
 import ConnectionStatus from "./ConnectionStatus.vue";
 
@@ -43,8 +57,10 @@ defineProps<Props>();
 defineEmits<{
   'retry-connection': [];
   'toggle-sidebar': [];
+  'create-new-chat': [];
 }>();
 
+const isCollapsed = useStorage('sidebar-collapsed', false)
 const totalCost = ref<number | null>(null);
 let costInterval: number | null = null;
 
@@ -85,7 +101,7 @@ onUnmounted(() => {
   justify-content: space-between;
   box-shadow: var(--shadow-sm);
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     padding: 16px 20px;
   }
 }
@@ -102,7 +118,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: flex;
   }
 
@@ -113,6 +129,34 @@ onUnmounted(() => {
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+.collapsed-new-chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  border: none;
+  color: var(--color-white);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+
+  &:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media (max-width: 992px) {
+    display: none;
   }
 }
 
@@ -142,7 +186,7 @@ onUnmounted(() => {
   padding: 4px 12px;
   border-radius: var(--radius-full);
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: none;
   }
 }
@@ -156,7 +200,7 @@ onUnmounted(() => {
   border-radius: var(--radius-full);
   border: 1px solid rgba(34, 197, 94, 0.2);
 
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     display: none;
   }
 }

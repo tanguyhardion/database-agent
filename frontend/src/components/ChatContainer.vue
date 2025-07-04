@@ -8,6 +8,7 @@
       :is-offline-mode="isOfflineMode"
       @retry-connection="$emit('retry-connection')"
       @toggle-sidebar="$emit('toggle-sidebar')"
+      @create-new-chat="$emit('create-new-chat')"
     />
 
     <EmptyChatState
@@ -65,6 +66,7 @@ defineEmits<{
   "cancel-edit": [messageId: string];
   "retry-connection": [];
   "toggle-sidebar": [];
+  "create-new-chat": [];
 }>();
 
 defineExpose({
@@ -121,7 +123,7 @@ defineExpose({
   max-width: 800px;
   margin: 0 auto;
   padding: 0 24px;
-  @media (max-width: 768px) {
+  @media (max-width: 992px) {
     padding: 0 16px;
   }
 }
