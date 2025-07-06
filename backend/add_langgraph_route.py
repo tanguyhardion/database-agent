@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Literal, Union, Optional, Any
 
+
 class LanguageModelTextPart(BaseModel):
     type: Literal["text"]
     text: str
@@ -141,7 +142,7 @@ class ChatRequest(BaseModel):
 def add_langgraph_route(app: FastAPI, graph, path: str):
     async def chat_completions(request: ChatRequest):
         inputs = convert_to_langchain_messages(request.messages)
-        
+
         try:
             # Run the graph and get the final response
             final_result = await graph.ainvoke(
@@ -151,32 +152,28 @@ def add_langgraph_route(app: FastAPI, graph, path: str):
                         "system": request.system,
                         "frontend_tools": request.tools,
                     }
-                }
+                },
             )
-            
+
             # Extract the final response from the graph result
             final_response = ""
             if "messages" in final_result and final_result["messages"]:
                 last_message = final_result["messages"][-1]
-                if hasattr(last_message, 'content') and last_message.content:
+                if hasattr(last_message, "content") and last_message.content:
                     # Only use messages that don't have tool calls (final responses)
-                    if not (hasattr(last_message, 'tool_calls') and last_message.tool_calls):
+                    if not (
+                        hasattr(last_message, "tool_calls") and last_message.tool_calls
+                    ):
                         final_response = last_message.content
-            
+
             if not final_response:
                 final_response = "No response was generated. Please try again."
-            
+
             # Return simple JSON response instead of streaming
-            return {
-                "type": "text",
-                "content": final_response
-            }
-            
+            return {"type": "text", "content": final_response}
+
         except Exception as e:
-            return {
-                "type": "error", 
-                "content": f"Error: {str(e)}"
-            }
+            return {"type": "error", "content": f"Error: {str(e)}"}
 
     async def chat_options():
         return {"message": "OK"}
