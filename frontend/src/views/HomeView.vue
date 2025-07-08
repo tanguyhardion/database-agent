@@ -148,10 +148,10 @@ const sendMessage = async (content: string) => {
     );
 
     // Update offline mode status
-    isOfflineMode.value = chatService.isInOfflineMode();
+    isOfflineMode.value = connectionStatus.value !== "connected";
     connectionStatus.value = chatService.getConnectionStatus();
     if (isOfflineMode.value) {
-      connectionMessage.value = "Demo mode - backend not available";
+      connectionMessage.value = "Not connected";
     } else {
       connectionMessage.value = "Connected to backend";
     }
@@ -226,10 +226,10 @@ const handleMessageEdit = async (messageId: string, content: string) => {
       );
 
       // Update offline mode status
-      isOfflineMode.value = chatService.isInOfflineMode();
+      isOfflineMode.value = connectionStatus.value !== "connected";
       connectionStatus.value = chatService.getConnectionStatus();
       if (isOfflineMode.value) {
-        connectionMessage.value = "Demo mode - backend not available";
+        connectionMessage.value = "Not connected";
       } else {
         connectionMessage.value = "Connected to backend";
       }
@@ -288,7 +288,7 @@ const testConnection = async () => {
     console.error("Error testing connection:", error);
     connectionStatus.value = "disconnected";
     isOfflineMode.value = true;
-    connectionMessage.value = "Connection test failed";
+    connectionMessage.value = "Disconnected";
   }
 };
 
@@ -304,8 +304,8 @@ const handleKeydown = (e: KeyboardEvent) => {
   // Skip keyboard shortcuts on mobile devices
   if (isMobile()) return;
 
-  // Ctrl/Cmd + K: New chat
-  if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+  // Ctrl/Cmd + Shift + K: New chat
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k") {
     e.preventDefault();
     createNewChat();
   }
@@ -319,13 +319,13 @@ onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
   // Test connection immediately when app loads
   testConnection();
-  // Set up periodic connection check (every 3 seconds)
+  // Set up periodic connection check (every 5 seconds)
   connectionCheckInterval.value = setInterval(() => {
     // Only check if we're currently in offline mode
     if (isOfflineMode.value) {
       testConnection();
     }
-  }, 3000);
+  }, 5000);
   // Focus input on mount
   nextTick(() => {
     chatContainerRef.value?.focus();

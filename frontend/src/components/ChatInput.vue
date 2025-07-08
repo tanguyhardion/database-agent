@@ -153,7 +153,7 @@ defineExpose({
   padding: 8px;
   background: var(--color-white);
   border-radius: var(--radius-2xl);
-  border: 1px solid rgba(226, 232, 240, 0.5);
+  border: 1px solid rgba(226, 232, 240);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:focus-within {

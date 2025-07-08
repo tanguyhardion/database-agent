@@ -65,9 +65,18 @@
       </div>
     </div>
 
-    <div v-if="!isCollapsed" class="sidebar__footer">      <div class="app-info">
+    <div v-if="!isCollapsed" class="sidebar__footer">
+      <div class="app-info">
         <h4>Business Data Chat</h4>
         <p>Ask questions about your data in natural language</p>
+      </div>
+      <div class="sidebar__logo">
+        <img src="/logo.png" alt="Company Logo" class="sidebar-logo-full" />
+      </div>
+    </div>
+    <div v-else class="sidebar__footer--collapsed">
+      <div class="sidebar__logo-collapsed">
+        <img src="/logo_short.png" alt="Logo Short" class="sidebar-logo-short" />
       </div>
     </div>
   </div>
@@ -91,6 +100,8 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
+const shouldAutoCloseSidebar = () => window.innerWidth < 992
+
 const createNewChat = () => {
   // If there's already an empty chat, don't create a new one
   if (currentChat.value && currentChat.value.messages.length === 0) {
@@ -99,8 +110,10 @@ const createNewChat = () => {
   isCreatingChat.value = true
   chatStore.createNewChat()
   
-  // Auto-close menu after creating new chat
-  isCollapsed.value = true
+  // Auto-close menu after creating new chat if viewport < 992px
+  if (shouldAutoCloseSidebar()) {
+    isCollapsed.value = true
+  }
   
   // Reset after a short delay for visual feedback
   setTimeout(() => {
@@ -111,8 +124,10 @@ const createNewChat = () => {
 const selectChat = (chatId: string) => {
   chatStore.selectChat(chatId)
   
-  // Auto-close menu after selecting chat
-  isCollapsed.value = true
+  // Auto-close menu after selecting chat if viewport < 992px
+  if (shouldAutoCloseSidebar()) {
+    isCollapsed.value = true
+  }
 }
 
 const deleteChat = (chatId: string) => {
@@ -436,6 +451,41 @@ defineExpose({
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.4;
     font-weight: 400;
+  }
+}
+
+.sidebar__logo {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  margin-top: 16px;
+  img.sidebar-logo-full {
+    max-width: 120px;
+    max-height: 48px;
+    width: auto;
+    height: auto;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+  }
+}
+.sidebar__footer--collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  padding-bottom: 16px;
+}
+.sidebar__logo-collapsed {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  width: 100%;
+  img.sidebar-logo-short {
+    max-width: 36px;
+    max-height: 36px;
+    width: auto;
+    height: auto;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
   }
 }
 

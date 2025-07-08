@@ -7,7 +7,7 @@
     <div v-if="isVisible" class="help-content">
       <h3>Keyboard Shortcuts</h3>
       <div class="shortcut-list">        <div class="shortcut-item">
-          <kbd>Ctrl</kbd> + <kbd>K</kbd>
+          <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd>
           <span>New chat</span>
         </div>
         <div class="shortcut-item">
@@ -86,7 +86,7 @@ onClickOutside(helpRef, () => {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-xl);
   z-index: 1000;
-  min-width: 240px;
+  min-width: 280px;
   h3 {
     margin: 0 0 16px 0;
     font-size: 16px;

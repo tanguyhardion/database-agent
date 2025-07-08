@@ -58,13 +58,6 @@
           <Copy :size="14" />
           <div v-if="showCopyIndicator" class="copy-indicator">Copied!</div>
         </button>
-        <button
-          @click="deleteMessage"
-          class="action-btn action-btn--danger"
-          title="Delete message"
-        >
-          <Trash2 :size="14" />
-        </button>
       </div>
     </div>
   </div>
@@ -72,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
-import { User, Bot, Edit2, Copy, Trash2 } from "lucide-vue-next";
+import { User, Bot, Edit2, Copy } from "lucide-vue-next";
 import { marked } from "marked";
 import type { Message } from "@/stores/chat";
 
@@ -163,10 +156,6 @@ const copyMessage = async () => {
   } catch (err) {
     console.error("Failed to copy message:", err);
   }
-};
-
-const deleteMessage = () => {
-  emit("delete", props.message.id);
 };
 </script>
 
