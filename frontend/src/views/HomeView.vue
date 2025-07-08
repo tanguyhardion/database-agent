@@ -24,6 +24,7 @@
         @delete="handleMessageDelete"
         @start-edit="handleStartEdit"
         @cancel-edit="handleCancelEdit"
+        @retry="handleMessageRetry"
         @retry-connection="testConnection"
         @toggle-sidebar="toggleSidebar"
         @create-new-chat="createNewChat"
@@ -265,6 +266,82 @@ const handleStartEdit = (messageId: string) => {
 const handleCancelEdit = (messageId: string) => {
   if (!currentChat.value) return;
   chatStore.cancelMessageEditing(currentChat.value.id, messageId);
+};
+const handleMessageRetry = async (messageId: string) => {
+  if (!currentChat.value) return;
+
+  // Find the index of the message to retry
+  const messageIndex = currentChat.value.messages.findIndex(
+    (m) => m.id === messageId
+  );
+  if (messageIndex === -1) return;
+
+  const messageToRetry = currentChat.value.messages[messageIndex];
+
+  // Only allow retry for user messages
+  if (messageToRetry.role !== "user") return;
+
+  // Remove all messages after the user message (including assistant responses)
+  const messagesToKeep = currentChat.value.messages.slice(
+    0,
+    messageIndex + 1
+  );
+
+  // Update the chat to only include messages up to and including the user message
+  const chat = chatStore.chats.find((c) => c.id === currentChat.value!.id);
+  if (chat) {
+    chat.messages = messagesToKeep;
+    chat.updatedAt = new Date();
+    chatStore.saveToStorage();
+  }
+
+  // Add loading message for AI response
+  const loadingMessage = chatStore.addLoadingMessage(currentChat.value.id);
+  if (!loadingMessage) return;
+
+  // Scroll to bottom
+  scrollToBottom();
+  // Set loading state
+  chatContainerRef.value?.setLoading(true);
+
+  try {
+    // Send conversation up to the retried message and get new response
+    const response = await chatService.sendMessage(
+      messagesToKeep.filter((m) => !m.isLoading)
+    );
+
+    // Update the loading message with the actual response
+    chatStore.updateLoadingMessage(
+      currentChat.value.id,
+      loadingMessage.id,
+      response
+    );
+
+    // Update offline mode status
+    isOfflineMode.value = connectionStatus.value !== "connected";
+    connectionStatus.value = chatService.getConnectionStatus();
+    if (isOfflineMode.value) {
+      connectionMessage.value = "Not connected";
+    } else {
+      connectionMessage.value = "Connected to backend";
+    }
+  } catch (error) {
+    console.error("Error retrying message:", error);
+    // Remove loading message and add error message
+    chatStore.removeLoadingMessage(currentChat.value.id, loadingMessage.id);
+    chatStore.addMessage(currentChat.value.id, {
+      role: "assistant",
+      content:
+        "Sorry, I encountered an error while processing your request. Please try again.",
+    });
+  } finally {
+    chatContainerRef.value?.setLoading(false);
+    scrollToBottom();
+    // Ensure input focus is restored after retry
+    nextTick(() => {
+      chatContainerRef.value?.focus();
+    });
+  }
 };
 const scrollToBottom = () => {
   nextTick(() => {

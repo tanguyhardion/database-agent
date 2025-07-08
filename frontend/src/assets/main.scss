@@ -141,3 +141,39 @@ input, textarea {
   background: var(--color-gray-400);
   background-clip: content-box;
 }
+
+/* LaTeX / KaTeX Global Styles */
+.katex {
+  font-family: "KaTeX_Main", "Times New Roman", serif;
+}
+
+.katex-display {
+  margin: 1em 0;
+  text-align: center;
+}
+
+.katex .katex-html {
+  white-space: nowrap;
+}
+
+/* Responsive LaTeX for mobile */
+@media (max-width: 768px) {
+  .katex-display {
+    font-size: 0.9em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5em 0;
+  }
+  
+  .latex-block-container {
+    overflow-x: auto;
+    padding: 0.5em;
+  }
+}
+
+/* Dark mode support for LaTeX (if needed in future) */
+@media (prefers-color-scheme: dark) {
+  .katex {
+    color: inherit;
+  }
+}

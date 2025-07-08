@@ -43,6 +43,14 @@
         class="message__actions"
       >
         <button
+          @click="copyMessage"
+          class="action-btn copy-btn"
+          title="Copy message"
+        >
+          <Copy :size="14" />
+          <div v-if="showCopyIndicator" class="copy-indicator">Copied!</div>
+        </button>
+        <button
           v-if="message.role === 'user'"
           @click="startEdit"
           class="action-btn"
@@ -51,12 +59,12 @@
           <Edit2 :size="14" />
         </button>
         <button
-          @click="copyMessage"
-          class="action-btn copy-btn"
-          title="Copy message"
+          v-if="message.role === 'user'"
+          @click="retryMessage"
+          class="action-btn retry-btn"
+          title="Retry message"
         >
-          <Copy :size="14" />
-          <div v-if="showCopyIndicator" class="copy-indicator">Copied!</div>
+          <RotateCcw :size="14" />
         </button>
       </div>
     </div>
@@ -65,8 +73,8 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
-import { User, Bot, Edit2, Copy } from "lucide-vue-next";
-import { marked } from "marked";
+import { User, Bot, Edit2, Copy, RotateCcw } from "lucide-vue-next";
+import { renderMarkdownWithLatex } from "@/utils/markdown";
 import type { Message } from "@/stores/chat";
 
 interface Props {
@@ -78,6 +86,7 @@ interface Emits {
   (e: "delete", messageId: string): void;
   (e: "start-edit", messageId: string): void;
   (e: "cancel-edit", messageId: string): void;
+  (e: "retry", messageId: string): void;
 }
 
 const props = defineProps<Props>();
@@ -89,10 +98,8 @@ const showCopyIndicator = ref(false);
 
 // Check if device is mobile
 const isMobile = () => {
-  return (
-    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    )
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
   );
 };
 
@@ -112,16 +119,8 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 const formattedContent = computed(() => {
   if (props.message.role === "assistant") {
-    // Parse markdown for assistant messages with proper line break handling
-    const htmlContent = marked(props.message.content, {
-      breaks: true,
-      gfm: true, // GitHub Flavored Markdown includes table support
-    }) as string;
-
-    // Wrap tables in a responsive container
-    return htmlContent
-      .replace(/<table>/g, '<div class="table-wrapper"><table>')
-      .replace(/<\/table>/g, "</table></div>");
+    // Parse markdown for assistant messages with LaTeX support
+    return renderMarkdownWithLatex(props.message.content);
   }
   // Plain text for user messages - convert newlines to <br> tags
   return props.message.content.replace(/\n/g, "<br>");
@@ -156,6 +155,10 @@ const copyMessage = async () => {
   } catch (err) {
     console.error("Failed to copy message:", err);
   }
+};
+
+const retryMessage = () => {
+  emit("retry", props.message.id);
 };
 </script>
 
@@ -527,5 +530,32 @@ const copyMessage = async () => {
     padding: 6px 12px;
     font-size: 12px;
   }
+}
+
+/* LaTeX rendering styles */
+:deep(.latex-block-container) {
+  margin: 1em 0;
+  text-align: center;
+  overflow-x: auto;
+  
+  .katex-display {
+    margin: 0;
+  }
+}
+
+:deep(.latex-inline-container) {
+  display: inline;
+  
+  .katex {
+    font-size: 1em;
+  }
+}
+
+:deep(.latex-error) {
+  color: #cc0000;
+  background-color: #ffe6e6;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
 }
 </style>

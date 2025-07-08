@@ -29,6 +29,7 @@
             @delete="$emit('delete', message.id)"
             @start-edit="$emit('start-edit', message.id)"
             @cancel-edit="$emit('cancel-edit', message.id)"
+            @retry="$emit('retry', message.id)"
           />
         </div>
       </div>
@@ -64,6 +65,7 @@ defineEmits<{
   delete: [messageId: string];
   "start-edit": [messageId: string];
   "cancel-edit": [messageId: string];
+  retry: [messageId: string];
   "retry-connection": [];
   "toggle-sidebar": [];
   "create-new-chat": [];

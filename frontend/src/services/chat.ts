@@ -53,7 +53,7 @@ export class ChatService {
     } catch (error) {
       console.error("Error in sendMessage:", error);
       // If backend is not available, return not connected message
-      return "<i>";
+      return "<i>Server unavailable</i>";
     }
   }
 

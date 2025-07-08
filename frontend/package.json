@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^13.3.0",
+    "katex": "^0.16.22",
     "lucide-vue-next": "^0.514.0",
     "marked": "^15.0.12",
     "pinia": "^3.0.1",
