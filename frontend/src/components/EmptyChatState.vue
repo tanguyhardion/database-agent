@@ -33,10 +33,10 @@ import ChatInput from "./ChatInput.vue";
 const chatInputRef = ref<InstanceType<typeof ChatInput>>();
 
 const exampleQuestions = [
-  "How many properties are in the UK?",
-  "Show me the top performing entities",
   "What data categories are available?",
+  "How many properties are in the UK?",
   "Give me a summary of recent transactions",
+  "What is the average lease term?",
 ];
 
 defineEmits<{
@@ -149,7 +149,7 @@ defineExpose({
 .example-btn-small {
   padding: 8px 16px;
   background: var(--color-white);
-  border: 1px solid var(--color-gray-200);
+  border: 1px solid var(--color-gray-300);
   border-radius: var(--radius-full);
   font-size: 13px;
   color: var(--color-gray-700);

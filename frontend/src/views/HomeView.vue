@@ -34,14 +34,14 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted, onUnmounted } from "vue";
 import { useChatStore } from "@/stores/chat";
-import { useStorage } from '@vueuse/core';
+import { useStorage } from "@vueuse/core";
 import { chatService } from "@/services/chat";
 import ChatSidebar from "@/components/ChatSidebar.vue";
 import WelcomeScreen from "@/components/WelcomeScreen.vue";
 import ChatContainer from "@/components/ChatContainer.vue";
 
 const chatStore = useChatStore();
-const isCollapsed = useStorage('sidebar-collapsed', false);
+const isCollapsed = useStorage("sidebar-collapsed", false);
 const chatContainerRef = ref<InstanceType<typeof ChatContainer>>();
 const sidebarRef = ref<InstanceType<typeof ChatSidebar>>();
 const isOfflineMode = ref(false);
@@ -63,10 +63,10 @@ const createNewChat = () => {
     return;
   }
   chatStore.createNewChat();
-  
+
   // Auto-close menu after creating new chat
   isCollapsed.value = true;
-  
+
   // Let the input handle its own focus - no need to manually focus
 };
 
@@ -134,12 +134,19 @@ const sendMessage = async (content: string) => {
   try {
     // Send message and get response
     const response = await chatService.sendMessage(
-      currentChat.value.messages.slice(0, -1).filter(m => !m.isLoading).concat([userMessage])
+      currentChat.value.messages
+        .slice(0, -1)
+        .filter((m) => !m.isLoading)
+        .concat([userMessage])
     );
-    
+
     // Update the loading message with the actual response
-    chatStore.updateLoadingMessage(currentChat.value.id, loadingMessage.id, response);
-    
+    chatStore.updateLoadingMessage(
+      currentChat.value.id,
+      loadingMessage.id,
+      response
+    );
+
     // Update offline mode status
     isOfflineMode.value = chatService.isInOfflineMode();
     connectionStatus.value = chatService.getConnectionStatus();
@@ -148,7 +155,6 @@ const sendMessage = async (content: string) => {
     } else {
       connectionMessage.value = "Connected to backend";
     }
-    
   } catch (error) {
     console.error("Error sending message:", error);
     // Remove loading message and add error message
@@ -157,7 +163,8 @@ const sendMessage = async (content: string) => {
       role: "assistant",
       content:
         "Sorry, I encountered an error while processing your request. Please try again.",
-    });  } finally {
+    });
+  } finally {
     chatContainerRef.value?.setLoading(false);
     scrollToBottom();
     // Ensure input focus is restored after message processing
@@ -168,29 +175,34 @@ const sendMessage = async (content: string) => {
 };
 const handleMessageEdit = async (messageId: string, content: string) => {
   if (!currentChat.value) return;
-  
+
   // Find the index of the message to edit BEFORE updating it
-  const messageIndex = currentChat.value.messages.findIndex(m => m.id === messageId);
+  const messageIndex = currentChat.value.messages.findIndex(
+    (m) => m.id === messageId
+  );
   if (messageIndex === -1) return;
-  
+
   const editedMessage = currentChat.value.messages[messageIndex];
-  
+
   // Update the message content
   chatStore.updateMessage(currentChat.value.id, messageId, content);
-  
+
   // If the edited message is a user message, regenerate the assistant response
-  if (editedMessage.role === 'user') {
+  if (editedMessage.role === "user") {
     // Remove all messages after the edited message (including assistant responses)
-    const messagesToKeep = currentChat.value.messages.slice(0, messageIndex + 1);
-    
+    const messagesToKeep = currentChat.value.messages.slice(
+      0,
+      messageIndex + 1
+    );
+
     // Update the chat to only include messages up to and including the edited message
-    const chat = chatStore.chats.find(c => c.id === currentChat.value!.id);
+    const chat = chatStore.chats.find((c) => c.id === currentChat.value!.id);
     if (chat) {
       chat.messages = messagesToKeep;
       chat.updatedAt = new Date();
       chatStore.saveToStorage();
     }
-    
+
     // Add loading message for AI response
     const loadingMessage = chatStore.addLoadingMessage(currentChat.value.id);
     if (!loadingMessage) return;
@@ -199,16 +211,20 @@ const handleMessageEdit = async (messageId: string, content: string) => {
     scrollToBottom();
     // Set loading state
     chatContainerRef.value?.setLoading(true);
-    
+
     try {
       // Send updated conversation and get new response
       const response = await chatService.sendMessage(
-        messagesToKeep.filter(m => !m.isLoading)
+        messagesToKeep.filter((m) => !m.isLoading)
       );
-      
+
       // Update the loading message with the actual response
-      chatStore.updateLoadingMessage(currentChat.value.id, loadingMessage.id, response);
-      
+      chatStore.updateLoadingMessage(
+        currentChat.value.id,
+        loadingMessage.id,
+        response
+      );
+
       // Update offline mode status
       isOfflineMode.value = chatService.isInOfflineMode();
       connectionStatus.value = chatService.getConnectionStatus();
@@ -217,7 +233,6 @@ const handleMessageEdit = async (messageId: string, content: string) => {
       } else {
         connectionMessage.value = "Connected to backend";
       }
-      
     } catch (error) {
       console.error("Error regenerating response:", error);
       // Remove loading message and add error message
@@ -226,7 +241,8 @@ const handleMessageEdit = async (messageId: string, content: string) => {
         role: "assistant",
         content:
           "Sorry, I encountered an error while processing your request. Please try again.",
-      });    } finally {
+      });
+    } finally {
       chatContainerRef.value?.setLoading(false);
       scrollToBottom();
       // Ensure input focus is restored after message editing
@@ -278,14 +294,16 @@ const testConnection = async () => {
 
 // Check if device is mobile
 const isMobile = () => {
-  return window.innerWidth <= 992 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 };
 
 // Keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
   // Skip keyboard shortcuts on mobile devices
   if (isMobile()) return;
-  
+
   // Ctrl/Cmd + K: New chat
   if ((e.ctrlKey || e.metaKey) && e.key === "k") {
     e.preventDefault();
@@ -301,13 +319,13 @@ onMounted(() => {
   document.addEventListener("keydown", handleKeydown);
   // Test connection immediately when app loads
   testConnection();
-  // Set up periodic connection check (every 10 seconds)
+  // Set up periodic connection check (every 3 seconds)
   connectionCheckInterval.value = setInterval(() => {
     // Only check if we're currently in offline mode
     if (isOfflineMode.value) {
       testConnection();
     }
-  }, 10000);
+  }, 3000);
   // Focus input on mount
   nextTick(() => {
     chatContainerRef.value?.focus();
@@ -353,8 +371,6 @@ watch(
     left: 0;
     right: 0;
     bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23667eea' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
-      repeat;
     pointer-events: none;
   }
 

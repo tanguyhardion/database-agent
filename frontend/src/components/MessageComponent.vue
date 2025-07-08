@@ -7,7 +7,8 @@
       <div v-else class="avatar avatar--assistant">
         <Bot :size="16" />
       </div>
-    </div>      <div class="message__content">
+    </div>
+    <div class="message__content">
       <div v-if="!message.isEditing" class="message__text">
         <div v-if="message.isLoading" class="loading-indicator">
           <div class="loading-dots">
@@ -18,8 +19,9 @@
         </div>
         <div v-else v-html="formattedContent"></div>
       </div>
-      
-      <div v-else class="message__edit">        <textarea
+
+      <div v-else class="message__edit">
+        <textarea
           ref="editTextarea"
           v-model="editContent"
           @keydown="handleKeydown"
@@ -27,12 +29,19 @@
           rows="3"
         ></textarea>
         <div class="edit-actions">
-          <button @click="saveEdit" class="btn btn--primary btn--sm">Save</button>
-          <button @click="cancelEdit" class="btn btn--secondary btn--sm">Cancel</button>
+          <button @click="saveEdit" class="btn btn--primary btn--sm">
+            Save
+          </button>
+          <button @click="cancelEdit" class="btn btn--secondary btn--sm">
+            Cancel
+          </button>
         </div>
       </div>
-      
-      <div v-if="!message.isEditing && !message.isLoading" class="message__actions">
+
+      <div
+        v-if="!message.isEditing && !message.isLoading"
+        class="message__actions"
+      >
         <button
           v-if="message.role === 'user'"
           @click="startEdit"
@@ -40,15 +49,14 @@
           title="Edit message"
         >
           <Edit2 :size="14" />
-        </button>        <button
+        </button>
+        <button
           @click="copyMessage"
           class="action-btn copy-btn"
           title="Copy message"
         >
           <Copy :size="14" />
-          <div v-if="showCopyIndicator" class="copy-indicator">
-            Copied!
-          </div>
+          <div v-if="showCopyIndicator" class="copy-indicator">Copied!</div>
         </button>
         <button
           @click="deleteMessage"
@@ -63,99 +71,103 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
-import { User, Bot, Edit2, Copy, Trash2 } from 'lucide-vue-next'
-import { marked } from 'marked'
-import type { Message } from '@/stores/chat'
+import { ref, computed, nextTick } from "vue";
+import { User, Bot, Edit2, Copy, Trash2 } from "lucide-vue-next";
+import { marked } from "marked";
+import type { Message } from "@/stores/chat";
 
 interface Props {
-  message: Message
+  message: Message;
 }
 
 interface Emits {
-  (e: 'edit', messageId: string, content: string): void
-  (e: 'delete', messageId: string): void
-  (e: 'start-edit', messageId: string): void
-  (e: 'cancel-edit', messageId: string): void
+  (e: "edit", messageId: string, content: string): void;
+  (e: "delete", messageId: string): void;
+  (e: "start-edit", messageId: string): void;
+  (e: "cancel-edit", messageId: string): void;
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
-const editTextarea = ref<HTMLTextAreaElement>()
-const editContent = ref('')
-const showCopyIndicator = ref(false)
+const editTextarea = ref<HTMLTextAreaElement>();
+const editContent = ref("");
+const showCopyIndicator = ref(false);
 
 // Check if device is mobile
 const isMobile = () => {
-  return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    )
+  );
 };
 
 // Handle keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
   // Skip keyboard shortcuts on mobile devices
   if (isMobile()) return;
-  
-  if ((e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
+
+  if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
     saveEdit();
-  } else if (e.key === 'Escape') {
+  } else if (e.key === "Escape") {
     e.preventDefault();
     cancelEdit();
   }
 };
 
 const formattedContent = computed(() => {
-  if (props.message.role === 'assistant') {
+  if (props.message.role === "assistant") {
     // Parse markdown for assistant messages with proper line break handling
-    const htmlContent = marked(props.message.content, { 
+    const htmlContent = marked(props.message.content, {
       breaks: true,
-      gfm: true // GitHub Flavored Markdown includes table support
-    }) as string
-    
+      gfm: true, // GitHub Flavored Markdown includes table support
+    }) as string;
+
     // Wrap tables in a responsive container
     return htmlContent
       .replace(/<table>/g, '<div class="table-wrapper"><table>')
-      .replace(/<\/table>/g, '</table></div>')
+      .replace(/<\/table>/g, "</table></div>");
   }
   // Plain text for user messages - convert newlines to <br> tags
-  return props.message.content.replace(/\n/g, '<br>')
-})
+  return props.message.content.replace(/\n/g, "<br>");
+});
 
 const startEdit = () => {
-  editContent.value = props.message.content
-  emit('start-edit', props.message.id)
+  editContent.value = props.message.content;
+  emit("start-edit", props.message.id);
   nextTick(() => {
-    editTextarea.value?.focus()
-  })
-}
+    editTextarea.value?.focus();
+  });
+};
 
 const saveEdit = () => {
-  emit('edit', props.message.id, editContent.value)
-}
+  emit("edit", props.message.id, editContent.value);
+};
 
 const cancelEdit = () => {
-  emit('cancel-edit', props.message.id)
-  editContent.value = ''
-}
+  emit("cancel-edit", props.message.id);
+  editContent.value = "";
+};
 
 const copyMessage = async () => {
   try {
-    await navigator.clipboard.writeText(props.message.content)
+    await navigator.clipboard.writeText(props.message.content);
     // Show the copy indicator
-    showCopyIndicator.value = true
+    showCopyIndicator.value = true;
     // Hide it after 1.5 seconds
     setTimeout(() => {
-      showCopyIndicator.value = false
-    }, 1500)
+      showCopyIndicator.value = false;
+    }, 1500);
   } catch (err) {
-    console.error('Failed to copy message:', err)
+    console.error("Failed to copy message:", err);
   }
-}
+};
 
 const deleteMessage = () => {
-  emit('delete', props.message.id)
-}
+  emit("delete", props.message.id);
+};
 </script>
 
 <style scoped lang="scss">
@@ -172,7 +184,7 @@ const deleteMessage = () => {
     background: rgba(102, 126, 234, 0.1);
     border: 1px solid rgba(102, 126, 234, 0.2);
     margin-left: 10%;
-    
+
     @media (max-width: 992px) {
       margin-left: 5%;
     }
@@ -183,7 +195,7 @@ const deleteMessage = () => {
     border: 1px solid rgba(226, 232, 240, 0.5);
     margin-right: 10%;
     box-shadow: var(--shadow-md);
-    
+
     @media (max-width: 992px) {
       margin-right: 5%;
     }
@@ -232,14 +244,20 @@ const deleteMessage = () => {
   line-height: 1.3;
   word-wrap: break-word;
 
-  :deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+  :deep(h1),
+  :deep(h2),
+  :deep(h3),
+  :deep(h4),
+  :deep(h5),
+  :deep(h6) {
     margin: 12px 0 6px 0;
     font-weight: 600;
   }
 
   :deep(p) {
-    margin: 4px 0; 
-  }  :deep(pre) {
+    margin: 4px 0;
+  }
+  :deep(pre) {
     background: var(--color-gray-100);
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-lg);
@@ -263,7 +281,8 @@ const deleteMessage = () => {
     padding: 0;
   }
 
-  :deep(ul), :deep(ol) {
+  :deep(ul),
+  :deep(ol) {
     margin: 8px 0;
     padding-left: 20px;
   }
@@ -286,7 +305,8 @@ const deleteMessage = () => {
     background: var(--color-white);
   }
 
-  :deep(th), :deep(td) {
+  :deep(th),
+  :deep(td) {
     padding: 16px 20px;
     text-align: left;
     border-bottom: 1px solid var(--color-gray-200);
@@ -301,7 +321,7 @@ const deleteMessage = () => {
 
   :deep(tbody tr) {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     &:nth-child(even) {
       background: var(--color-gray-50);
     }
@@ -411,7 +431,7 @@ const deleteMessage = () => {
   animation: copyIndicatorFade 0.5s ease-in-out forwards;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 100%;
     left: 50%;
@@ -475,7 +495,9 @@ const deleteMessage = () => {
 }
 
 @keyframes loading-bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: scale(0.8);
     opacity: 0.5;
   }

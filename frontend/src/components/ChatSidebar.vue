@@ -368,7 +368,7 @@ defineExpose({
 .chat-item__delete {
   background: transparent;
   border: none;
-  color: var(--color-error);
+  color: var(--color-gray-200);
   cursor: pointer;
   padding: 8px;
   border-radius: var(--radius-lg);

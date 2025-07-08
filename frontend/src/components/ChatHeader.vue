@@ -78,8 +78,8 @@ const fetchCost = async () => {
 
 onMounted(() => {
   fetchCost();
-  // Update cost every 10 seconds
-  costInterval = setInterval(fetchCost, 10000);
+  // Update cost every second
+  costInterval = setInterval(fetchCost, 1000);
 });
 
 onUnmounted(() => {
@@ -154,10 +154,6 @@ onUnmounted(() => {
   &:active {
     transform: scale(0.95);
   }
-
-  @media (max-width: 992px) {
-    display: none;
-  }
 }
 
 .chat-header-left {
@@ -199,10 +195,6 @@ onUnmounted(() => {
   padding: 4px 12px;
   border-radius: var(--radius-full);
   border: 1px solid rgba(34, 197, 94, 0.2);
-
-  @media (max-width: 992px) {
-    display: none;
-  }
 }
 
 .connection-status {
