@@ -518,7 +518,7 @@ const retryMessage = () => {
   }
 
   &--secondary {
-    background: var(--color-gray-200);
+    background: var(--color-gray-300);
     color: var(--color-gray-700);
 
     &:hover {
