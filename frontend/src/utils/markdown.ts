@@ -1,9 +1,78 @@
 import { marked } from 'marked'
 import katex from 'katex'
+import Prism from 'prismjs'
+
+// Import only essential language components for syntax highlighting
+// Keep it minimal - only commonly used languages
+import 'prismjs/components/prism-clike' // Base for C-like languages (required first)
+import 'prismjs/components/prism-javascript'
+import 'prismjs/components/prism-typescript'
+import 'prismjs/components/prism-python'
+import 'prismjs/components/prism-sql'
+import 'prismjs/components/prism-json'
+import 'prismjs/components/prism-bash'
+import 'prismjs/components/prism-css'
+import 'prismjs/components/prism-markup' // HTML/XML
 
 // Regular expressions for LaTeX patterns
 const INLINE_LATEX_REGEX = /\$([^$\n]+?)\$|\\\(([^)]+?)\\\)|\( ([^)]+?) \)/g
 const BLOCK_LATEX_REGEX = /\$\$([^$]+?)\$\$|\\\[([^\]]+?)\\\]|\[ ([^\]]+?) \]/g
+
+// Configure marked with custom renderer for syntax highlighting
+const renderer = new marked.Renderer()
+
+// Override code block rendering to add syntax highlighting
+renderer.code = function({ text, lang }: { text: string; lang?: string }) {
+  // Default to plain text if no language specified
+  let language = lang || 'text'
+  
+  // Handle common language aliases (keep it simple)
+  const languageAliases: { [key: string]: string } = {
+    'js': 'javascript',
+    'ts': 'typescript',
+    'py': 'python',
+    'sh': 'bash',
+    'shell': 'bash',
+    'html': 'markup',
+    'xml': 'markup'
+  }
+  
+  // Apply alias if it exists
+  if (languageAliases[language.toLowerCase()]) {
+    language = languageAliases[language.toLowerCase()]
+  }
+  
+  try {
+    // Check if Prism supports this language
+    const grammar = Prism.languages[language]
+    if (grammar && typeof grammar === 'object') {
+      const highlighted = Prism.highlight(text, grammar, language)
+      return `<pre><code>${highlighted}</code></pre>`
+    }
+  } catch (error) {
+    console.warn(`Syntax highlighting failed for language: ${language}`, error)
+    // Fall through to plain text rendering
+  }
+  
+  // Fallback to plain code block
+  return `<pre><code>${text.replace(/[&<>"']/g, (match) => {
+    const escapeMap: { [key: string]: string } = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }
+    return escapeMap[match]
+  })}</code></pre>`
+}
+
+// Configure marked options
+marked.setOptions({
+  renderer,
+  breaks: true,
+  gfm: true
+})
 
 /**
  * Renders LaTeX expressions within markdown content
@@ -53,11 +122,8 @@ export function renderMarkdownWithLatex(content: string): string {
     }
   })
 
-  // Process markdown
-  const htmlContent = marked(processedContent, {
-    breaks: true,
-    gfm: true
-  }) as string
+  // Process markdown with syntax highlighting
+  const htmlContent = marked(processedContent) as string
 
   // Wrap tables in responsive containers
   return htmlContent

@@ -65,8 +65,14 @@ const createNewChat = () => {
   }
   chatStore.createNewChat();
 
-  // Auto-close menu after creating new chat
-  isCollapsed.value = true;
+  // Only auto-close sidebar if we're in mobile overlay mode (viewport < 992px AND sidebar is expanded)
+  const shouldAutoCloseSidebar = () => {
+    return window.innerWidth < 992 && !isCollapsed.value;
+  };
+
+  if (shouldAutoCloseSidebar()) {
+    isCollapsed.value = true;
+  }
 
   // Let the input handle its own focus - no need to manually focus
 };
@@ -117,6 +123,7 @@ const sendMessage = async (content: string) => {
     createNewChat();
     if (!currentChat.value) return;
   }
+  
   // Add user message
   const userMessage = chatStore.addMessage(currentChat.value.id, {
     role: "user",
@@ -132,6 +139,7 @@ const sendMessage = async (content: string) => {
   scrollToBottom();
   // Set loading state
   chatContainerRef.value?.setLoading(true);
+  
   try {
     // Send message and get response
     const response = await chatService.sendMessage(

@@ -100,7 +100,10 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
 }
 
-const shouldAutoCloseSidebar = () => window.innerWidth < 992
+const shouldAutoCloseSidebar = () => {
+  // Only auto-close if we're in mobile overlay mode (viewport < 992px AND sidebar is expanded)
+  return window.innerWidth < 992 && !isCollapsed.value
+}
 
 const createNewChat = () => {
   // If there's already an empty chat, don't create a new one
@@ -110,7 +113,7 @@ const createNewChat = () => {
   isCreatingChat.value = true
   chatStore.createNewChat()
   
-  // Auto-close menu after creating new chat if viewport < 992px
+  // Auto-close menu after creating new chat only if in mobile overlay mode
   if (shouldAutoCloseSidebar()) {
     isCollapsed.value = true
   }
@@ -124,7 +127,7 @@ const createNewChat = () => {
 const selectChat = (chatId: string) => {
   chatStore.selectChat(chatId)
   
-  // Auto-close menu after selecting chat if viewport < 992px
+  // Auto-close menu after selecting chat only if in mobile overlay mode
   if (shouldAutoCloseSidebar()) {
     isCollapsed.value = true
   }

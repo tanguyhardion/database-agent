@@ -11,11 +11,13 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@types/prismjs": "^1.26.5",
     "@vueuse/core": "^13.3.0",
     "katex": "^0.16.22",
     "lucide-vue-next": "^0.514.0",
     "marked": "^15.0.12",
     "pinia": "^3.0.1",
+    "prismjs": "^1.30.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0"
   },

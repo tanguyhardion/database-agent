@@ -257,6 +257,32 @@ const retryMessage = () => {
     overflow-x: auto;
     margin: 12px 0;
     box-shadow: var(--shadow-sm);
+    position: relative;
+    
+    // Reset any inherited styles that might cause visual artifacts
+    text-decoration: none;
+    
+    // Reset all possible text decorations and pseudo-elements
+    &::before,
+    &::after {
+      display: none;
+    }
+    
+    // Apply to all text inside
+    * {
+      text-decoration: none !important;
+      border-top: none !important;
+      border-bottom: none !important;
+    }
+    
+    // Minimal syntax highlighting colors
+    .token.comment { color: #6b7280; }
+    .token.string { color: #059669; }
+    .token.keyword { color: #7c3aed; }
+    .token.function { color: #ea580c; }
+    .token.number { color: #dc2626; }
+    .token.operator { color: #0ea5e9; }
+    .token.punctuation { color: #374151; }
   }
 
   :deep(code) {
@@ -266,11 +292,24 @@ const retryMessage = () => {
     font-family: var(--font-mono);
     font-size: 0.875em;
     border: 1px solid var(--color-gray-200);
+    
+    // Reset any inherited styles
+    text-decoration: none;
+    border-top: none;
+    border-bottom: none;
+    
+    // Syntax highlighting support
+    &[class*="language-"] {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+    }
   }
 
   :deep(pre code) {
     background-color: transparent;
     padding: 0;
+    border: none;
+    text-decoration: none;
   }
 
   :deep(ul),

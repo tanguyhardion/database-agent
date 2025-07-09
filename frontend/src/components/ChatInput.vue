@@ -110,7 +110,16 @@ const addNewLine = (event: KeyboardEvent) => {
 const setLoading = (loading: boolean) => {
   isLoading.value = loading;
 
-  // When loading is finished, refocus the input to ensure it stays focused
+  // When loading starts, maintain focus on the input
+  if (loading) {
+    nextTick(() => {
+      if (inputRef.value && document.activeElement !== inputRef.value) {
+        inputRef.value.focus();
+      }
+    });
+  }
+
+  // When loading is finished, ensure the input regains focus
   if (!loading) {
     nextTick(() => {
       if (inputRef.value) {
