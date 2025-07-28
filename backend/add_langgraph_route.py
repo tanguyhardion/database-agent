@@ -5,6 +5,7 @@ from langchain_core.messages import (
     SystemMessage,
     BaseMessage,
 )
+from langgraph.graph import StateGraph
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Literal, Union, Optional, Any
@@ -139,7 +140,7 @@ class ChatRequest(BaseModel):
     messages: List[LanguageModelV1Message]
 
 
-def add_langgraph_route(app: FastAPI, graph, path: str):
+def add_langgraph_route(app: FastAPI, graph: StateGraph, path: str):
     async def chat_completions(request: ChatRequest):
         inputs = convert_to_langchain_messages(request.messages)
 

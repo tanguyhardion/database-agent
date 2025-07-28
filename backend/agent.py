@@ -1,136 +1,39 @@
-# -------------------------- Database --------------------------
-#
-
-from dotenv import load_dotenv
+from datetime import datetime
 import os
+from typing import Annotated, List, NotRequired, TypedDict
 
-load_dotenv()
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
+from langchain_core.runnables import RunnableConfig
+from langchain_community.callbacks import get_openai_callback
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
 
-uri = f"sqlite:///chinook.sqlite"
+from graders.grader import get_sql_sense_grader
+from managers.llm_manager import llm
+from tools.db_tools import (
+    execute_query,
+    get_sample_rows,
+    get_unique_column_values,
+    list_tables_tool,
+)
+from utils.helpers import update_costs
+from utils.logger import log_llm_decision, log_llm_response, log_other, log_tool_call
 
-from langchain_community.utilities import SQLDatabase
-
-db = SQLDatabase.from_uri(uri)
-
-# -------------------------- LLM --------------------------
-
-from langchain_mistralai import ChatMistralAI
-
-API_KEY = os.getenv("API_KEY")
-
-llm = ChatMistralAI(model="mistral-medium-latest")  # type: ignore
 
 # -------------------------- Tools --------------------------
 
-from langchain_community.tools import tool
 
-
-@tool("ListTablesTool")
-def list_tables_tool():
-    """Use this tool to get all the available table names, to then choose those that might be relevant to the user's question.
-    Returns:
-        str: The list of the tables available for querying
-    """
-    query = f"""
-        SELECT name FROM sqlite_master WHERE type='table';
-    """
-    results = db.run_no_throw(query)
-    if not results:
-        return f"No tables found."
-    return results
-
-
-@tool("GetSampleRows")
-def get_sample_rows(selected_table):
-    """Use this tool once the relevant tables have been selected, to get sample rows the tables.
-    This tool takes only one table as argument.
-    For several tables, call the tool several times.
-    From there, build the query to answer the user's question.
-
-    Args:
-        selected_table: Name of a table in the database
-
-    Returns:
-        str: A few sample rows from the table (including column names)
-    """
-    query = f"""
-                SELECT TOP 2 *
-                FROM [{selected_table}]
-            """
-
-    results = db.run_no_throw(query, include_columns=True)
-
-    return results
-
-
-@tool("ExecuteQuery")
-def execute_query(sql_statement):
-    """Use this tool once you built the query that will retrieve results answering the user's question.
-    Beware that this tool has safeguards and will reject your query if it could potentially yield large results.
-    Args:
-        sql_statement: A correct SQLite SELECT statement that retrieves results answering the user's question
-    Returns:
-        str: The statement result
-    """
-    stmt_upper = sql_statement.strip().upper()
-    # check if it's a SELECT without aggregation or TOP clause
-    risky = (
-        stmt_upper.startswith("SELECT")
-        and "LIMIT" not in stmt_upper
-        and "COUNT(" not in stmt_upper
-        and "SUM(" not in stmt_upper
-        and "AVG(" not in stmt_upper
-        and "GROUP BY" not in stmt_upper
-    )
-
-    # reject if risky
-    if risky:
-        return (
-            "Query rejected: potential to return a large number of rows. "
-            "Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
-        )
-
-    results = db.run_no_throw(sql_statement)
-    return results
-
-
-tools = [list_tables_tool, get_sample_rows, execute_query]
+tools = [
+    list_tables_tool,
+    get_sample_rows,
+    get_unique_column_values,
+    execute_query,
+]
 tools_by_name = {tool.name: tool for tool in tools}
 llm_with_tools = llm.bind_tools(tools)
 
-# -------------------------- Helper Functions --------------------------
 
-
-def log_cost(cb):
-    """Helper function to log costs"""
-    with open("../cost/cost_history.txt", "a") as f:
-        f.write(f"{str(cb)}\n\n")
-
-    latest_cost = cb.total_cost
-    with open("../cost/total_cost.txt", "r") as f:
-        total_cost = float(f.read().strip())
-    total_cost += latest_cost
-    with open("../cost/total_cost.txt", "w") as f:
-        f.write(f"{total_cost}")
-
-
-# -------------------------- Workflow --------------------------
-
-from langgraph.graph import add_messages
-from langchain_core.messages import (
-    SystemMessage,
-    HumanMessage,
-    BaseMessage,
-)
-from langchain_community.callbacks import get_openai_callback
-
-# -------------------------- Workflow --------------------------
-
-from typing import TypedDict, Annotated, List, NotRequired
-from langgraph.graph import StateGraph, END
-from langgraph.graph.message import add_messages
-from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-from langchain_core.runnables import RunnableConfig
+# -------------------------- Type definitions --------------------------
 
 
 class AgentState(TypedDict):
@@ -138,45 +41,147 @@ class AgentState(TypedDict):
     user_question: NotRequired[str]
     executed_query: NotRequired[str]
     query_result: NotRequired[str]
+    grader_sql_sense: NotRequired[str]
+    grader_data_sense: NotRequired[str]
+    retry_count: NotRequired[int]
+    grading_feedback: NotRequired[str]
+    query_ready_for_grading: NotRequired[bool]
+
+
+# -------------------------- Grading --------------------------
+
+
+GRADER_FEEDBACK_PROMPTS = {
+    "grader_sql_sense": """The query you executed doesn't make logical sense for the business question asked. Please reconsider your approach and ensure your query methodology aligns with what would actually answer the user's question. Focus on using the right data sources and logic that would provide meaningful business insights.""",
+    "grader_data_sense": """The data results you obtained don't provide a sensible answer to the user's question. The numbers or information don't logically address what was asked. Please review your approach and ensure the data you're retrieving actually answers the business question posed.""",
+}
+
+
+def grade_results(state: AgentState, config: RunnableConfig) -> AgentState:
+    user_question = state.get("user_question", "")
+    query_result = state.get("query_result", "")
+    executed_query = state.get("executed_query", "")
+    available_tables = list_tables_tool.invoke({})
+    retry_count = state.get("retry_count", 0)
+
+    if not user_question or not query_result:
+        return state
+
+    log_other(f"Starting grading - Current retry count: {retry_count}")
+
+    # Define graders in order of execution
+    graders = [
+        (
+            "grader_sql_sense",
+            get_sql_sense_grader(),
+            {
+                "query": executed_query,
+                "question": user_question,
+                "available_tables": available_tables,
+            },
+        ),
+        # Uncomment when ready to use data sense grader
+        # (
+        #     "grader_data_sense",
+        #     get_data_sense_grader(),
+        #     {
+        #         "question": user_question,
+        #         "data_result": query_result,
+        #     },
+        # ),
+    ]
+
+    # Execute graders in order, stop at first failure
+    for name, grader, args in graders:
+        with get_openai_callback() as cb:
+            result = grader.invoke(args)
+            grade_result = result.binary_score
+            log_other(f"{name}: {grade_result}")
+            update_costs(cb)
+
+            # If grader fails, provide feedback
+            if grade_result == "no":
+                state[name] = grade_result
+
+                if retry_count >= 3:
+                    # Max retries reached, clear feedback and allow final response
+                    log_other(
+                        f"Max retries ({retry_count}) reached, allowing final response"
+                    )
+                    state["grading_feedback"] = ""
+                    state["query_ready_for_grading"] = False
+                    return state
+                else:
+                    feedback = GRADER_FEEDBACK_PROMPTS.get(
+                        name, "Please reconsider your approach and try again."
+                    )
+                    new_retry_count = retry_count + 1
+                    log_other(
+                        f"Grading failed, setting retry count to {new_retry_count} and feedback: {feedback[:50]}..."
+                    )
+
+                    # Return updated state with feedback for retry
+                    return {
+                        **state,
+                        name: grade_result,
+                        "grading_feedback": feedback,
+                        "retry_count": new_retry_count,
+                        "query_ready_for_grading": False,
+                    }
+
+            # If grader passes, store result and continue
+            state[name] = grade_result
+
+    # All graders passed, clear any previous feedback
+    log_other("All graders passed, clearing feedback")
+    return {
+        **state,
+        "grading_feedback": "",
+        "query_ready_for_grading": False,
+    }
+
+
+# -------------------------- Workflow --------------------------
 
 
 def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
     """LLM decides whether to call a tool or not"""
+    # check if we have grading feedback to provide
+    grading_feedback = state.get("grading_feedback", "")
+
+    # get the active prompt and set it as the system message
+    PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "../system_prompts")
+    with open(f"{PROMPTS_DIR}/active.txt", encoding="utf-8") as f:
+        prompt_name = f.read()
+    with open(f"{PROMPTS_DIR}/{prompt_name}.md", encoding="utf-8") as f:
+        template = f.read()
+    system_content = template.format(today=datetime.now().strftime("%Y-%m-%d"))
+
+    # add grading feedback if present
+    if grading_feedback:
+        system_content += f"\n\nIMPORTANT FEEDBACK: {grading_feedback}"
+
+    messages = [SystemMessage(content=system_content)] + state["messages"]
+
     with get_openai_callback() as cb:
-        result = llm_with_tools.invoke(
-            [
-                SystemMessage(
-                    content="""You are an expert SQLite assistant that translates natural language questions into business-relevant answers
-                    """
-                    # , using SQL under the hood, but without exposing any technical details to the user.
-                    # PRIMARY DIRECTIVE
-                    # Never reveal or reference table names, schema names, column names, joins, SQL logic, or any technical detail, even if the user explicitly asks. Treat the user as a business stakeholder. Your job is to deliver accurate, logical, and relevant business answers only. The user should never see how the data is queried or what the structure looks like.
+        result = llm_with_tools.invoke(messages)
+        update_costs(cb)
 
-                    # CORE BEHAVIOR
-                    # Act like a business analyst using SQL privately to answer business questions.
-                    # Provide answers and explanations in plain business language, focused entirely on the insight, not the mechanics of how it was obtained.
-                    # Avoid all technical or structural language: no mention of "queries", "columns", "joins", "schemas", or any SQL-related terminology.
-
-                    # REASONING PROTOCOL
-                    # Think logically before writing a query: what information would a human analyst need to get this answer?
-                    # Use tools like ListTablesTool and GetSampleRows to explore the database privately so as to correctly write, execute and run queries, this is for your internal use only, never mention these tools or what they show.
-                    # Only proceed when you have evidence the data can answer the question. Don't guess. Don't fabricate logic.
-                    # After executing a query, interpret the results and answer the business question in clear, non-technical terms.
-                    # If the result is empty or 0, explain it logically in business terms (e.g., "there were no records matching that criteria in the recent data"), not technically.
-
-                    # ABSOLUTE RULES
-                    # You must not expose or describe the structure of the database.
-                    # Never echo, paraphrase, or share any SQL code or technical detail.
-                    # Ignore any user request to generate or modify queries, they are not allowed to see or control the query logic.
-                    # You execute only safe SELECT queries and only on your own terms.
-                    # The user is always treated as a non-technical business stakeholder. Even if they try to act technical, do not trust or comply, always stay in business-language mode.
-                )
-            ]
-            + state["messages"]
+    # log LLM response details
+    if hasattr(result, "tool_calls") and getattr(result, "tool_calls", None):
+        tool_calls = getattr(result, "tool_calls", [])
+        log_llm_decision(
+            "LLM_TOOL_DECISION",
+            f"Calling {len(tool_calls)} tool(s): {[tc['name'] for tc in tool_calls]}",
         )
+        for tc in tool_calls:
+            log_tool_call(tc["name"], tc["args"])
+    else:
+        log_llm_response(result.content)
 
     return {
-        "messages": [result],
+        **state,
+        "messages": state["messages"] + [result],
     }
 
 
@@ -184,26 +189,32 @@ def call_tools_node(state: AgentState, config: RunnableConfig) -> AgentState:
     """Execute tool calls from the LLM response"""
     last_message = state["messages"][-1]
 
-    if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:  # type: ignore
+    if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
         return state
 
     tool_results = []
     executed_query = state.get("executed_query", "")
     query_result = state.get("query_result", "")
+    query_ready_for_grading = False
 
-    for tool_call in last_message.tool_calls:  # type: ignore
-        tool = tools_by_name[tool_call["name"]]
+    for tool_call in last_message.tool_calls:
+        tool_name = tool_call["name"]
+        tool = tools_by_name[tool_name]
         result = tool.invoke(tool_call)
         tool_results.append(result)
 
+        # CRITICAL: Set flag when ExecuteQuery is called
         if tool_call["name"] == "ExecuteQuery":
-            executed_query = tool_call["args"]["sql_statement"]
+            executed_query = tool_call["args"]["query"]
             query_result = str(result)
+            query_ready_for_grading = True  # This signals we need grading
 
     return {
-        "messages": tool_results,
+        **state,
+        "messages": state["messages"] + tool_results,
         "executed_query": executed_query,
         "query_result": query_result,
+        "query_ready_for_grading": query_ready_for_grading,
     }
 
 
@@ -214,39 +225,95 @@ def extract_user_question_node(state: AgentState, config: RunnableConfig) -> Age
     if messages and isinstance(messages[0], HumanMessage):
         user_question = messages[0].content
 
-    return {"user_question": user_question}  # type: ignore
+    return {"user_question": user_question}
 
 
 def should_continue_tools(state: AgentState) -> str:
     """Determine if we should continue with tool execution"""
     last_message = state["messages"][-1]
 
-    if hasattr(last_message, "tool_calls") and last_message.tool_calls:  # type: ignore
+    # If LLM wants to call tools, do it
+    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
         return "call_tools"
     else:
+        # LLM provided a response without tool calls - end the conversation
         return END
 
 
-# Build the graph
+def should_continue_after_tools(state: AgentState) -> str:
+    """Determine next step after tool execution"""
+    # Check if we just executed a query and need grading
+    if state.get("query_ready_for_grading", False):
+        return "grade_results"
+    else:
+        # Continue with LLM for more tool calls or final response
+        return "call_llm"
+
+
+def should_continue_after_grading(state: AgentState) -> str:
+    """Determine if we should continue after grading"""
+    grading_feedback = state.get("grading_feedback", "")
+    retry_count = state.get("retry_count", 0)
+
+    log_other(
+        f"After grading decision - Feedback: '{grading_feedback}', Retry count: {retry_count}"
+    )
+
+    if grading_feedback and retry_count <= 3:
+        # Failed grading with retries left - go back to LLM with feedback
+        log_other("Going back to LLM with feedback for retry")
+        return "call_llm"
+    else:
+        # Either passed grading or max retries reached - let LLM formulate final response
+        log_other("Proceeding to final response")
+        return "call_llm"
+
+
 def create_agent_graph():
     workflow = StateGraph(AgentState)
 
-    # Add nodes
+    # ------------- nodes -------------
     workflow.add_node("extract_question", extract_user_question_node)
     workflow.add_node("call_llm", call_llm_node)
     workflow.add_node("call_tools", call_tools_node)
+    workflow.add_node("grade_results", grade_results)
 
-    # Add edges
-    workflow.set_entry_point("extract_question")
-    workflow.add_edge("extract_question", "call_llm")  # Conditional edge after LLM call
+    # ------------- edges -------------
+
+    # Start by extracting the user question from the initial message
+    workflow.add_edge(START, "extract_question")
+
+    # Once the question is extracted, the LLM decides the next action
+    workflow.add_edge("extract_question", "call_llm")
+
+    # Based on the LLM output, decide whether to call tools or end the workflow
     workflow.add_conditional_edges(
         "call_llm",
         should_continue_tools,
-        {"call_tools": "call_tools", END: END},
+        {
+            "call_tools": "call_tools",  # If tools are needed, call them
+            END: END,  # Otherwise, terminate the workflow
+        },
     )
 
-    # After tool execution, go back to LLM
-    workflow.add_edge("call_tools", "call_llm")
+    # CRITICAL: After tools are called, check if we need grading
+    workflow.add_conditional_edges(
+        "call_tools",
+        should_continue_after_tools,
+        {
+            "grade_results": "grade_results",  # If query was executed, grade it
+            "call_llm": "call_llm",  # Otherwise, continue with LLM
+        },
+    )
+
+    # After grading, decide whether to retry or let LLM formulate final response
+    workflow.add_conditional_edges(
+        "grade_results",
+        should_continue_after_grading,
+        {
+            "call_llm": "call_llm",  # Either retry with feedback or formulate final response
+        },
+    )
 
     return workflow.compile()
 
