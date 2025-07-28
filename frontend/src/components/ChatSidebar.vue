@@ -70,14 +70,6 @@
         <h4>Business Data Chat</h4>
         <p>Ask questions about your data in natural language</p>
       </div>
-      <div class="sidebar__logo">
-        <img src="/logo.png" alt="Company Logo" class="sidebar-logo-full" />
-      </div>
-    </div>
-    <div v-else class="sidebar__footer--collapsed">
-      <div class="sidebar__logo-collapsed">
-        <img src="/logo_short.png" alt="Logo Short" class="sidebar-logo-short" />
-      </div>
     </div>
   </div>
 </template>
