@@ -22,9 +22,6 @@
       
       <h2 class="chat-title">{{ title }}</h2>
       <div class="chat-meta">{{ messageCount }} messages</div>
-      <div class="cost-meta" v-if="totalCost !== null">
-        Total cost: ${{ totalCost.toFixed(4) }}
-      </div>
     </div>
     <div class="connection-status">
       <HelpTooltip />
@@ -62,32 +59,6 @@ defineEmits<{
 }>();
 
 const isCollapsed = useStorage("sidebar-collapsed", false);
-const totalCost = ref<number | null>(null);
-let costInterval: number | null = null;
-
-const fetchCost = async () => {
-  try {
-    const response = await fetch("/api/cost");
-    if (response.ok) {
-      const data = await response.json();
-      totalCost.value = data.cost;
-    }
-  } catch (error) {
-    console.error("Failed to fetch cost:", error);
-  }
-};
-
-onMounted(() => {
-  fetchCost();
-  // Update cost every second
-  costInterval = setInterval(fetchCost, 1000);
-});
-
-onUnmounted(() => {
-  if (costInterval) {
-    clearInterval(costInterval);
-  }
-});
 </script>
 
 <style lang="scss" scoped>

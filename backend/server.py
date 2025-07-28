@@ -17,20 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Add route to serve cost.txt
-@app.get("/api/cost")
-async def get_cost():
-    try:
-        cost_file_path = os.path.join(os.path.dirname(__file__), "cost.txt")
-        if os.path.exists(cost_file_path):
-            with open(cost_file_path, 'r') as f:
-                cost = float(f.read().strip())
-                return {"cost": cost}
-        else:
-            return {"cost": 0.0}
-    except Exception:
-        return {"cost": 0.0}
-
 add_langgraph_route(app, graph, "/api/chat")
 
 
