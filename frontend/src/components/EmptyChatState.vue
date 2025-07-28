@@ -34,8 +34,7 @@ const chatInputRef = ref<InstanceType<typeof ChatInput>>();
 
 const exampleQuestions = [
   "What data categories are available?",
-  "How many properties are in the UK?",
-  "Give me a summary of recent transactions",
+  "How many properties are in the USA?",
   "What is the average lease term?",
 ];
 

@@ -20,9 +20,9 @@
     </button>
     
     <div class="welcome-content">
-      <h1 class="welcome-title">Welcome to Business Data Chat</h1>
+      <h1 class="welcome-title">Welcome to Database Chat</h1>
       <p class="welcome-description">
-        Ask questions about your business data in natural language and get
+        Ask questions about your Database in natural language and get
         insights instantly.
       </p>
       <!-- Connection status in welcome screen -->

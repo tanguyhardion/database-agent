@@ -42,3 +42,7 @@ def log_llm_response(response):
     """Log final LLM response"""
     response_str = str(response)
     logger.info(f"LLM_RESPONSE: {response_str}")
+
+def log_other(message):
+    """Log other messages or events"""
+    logger.info(f"OTHER: {message}")

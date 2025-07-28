@@ -16,7 +16,6 @@ from tools.db_tools import (
     get_unique_column_values,
     list_tables_tool,
 )
-from utils.helpers import update_costs
 from utils.logger import log_llm_decision, log_llm_response, log_other, log_tool_call
 
 
@@ -97,7 +96,6 @@ def grade_results(state: AgentState, config: RunnableConfig) -> AgentState:
             result = grader.invoke(args)
             grade_result = result.binary_score
             log_other(f"{name}: {grade_result}")
-            update_costs(cb)
 
             # If grader fails, provide feedback
             if grade_result == "no":
@@ -150,7 +148,7 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
     grading_feedback = state.get("grading_feedback", "")
 
     # get the active prompt and set it as the system message
-    PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "../system_prompts")
+    PROMPTS_DIR = os.path.join(os.path.dirname(__file__), "./system_prompts")
     with open(f"{PROMPTS_DIR}/active.txt", encoding="utf-8") as f:
         prompt_name = f.read()
     with open(f"{PROMPTS_DIR}/{prompt_name}.md", encoding="utf-8") as f:
@@ -165,7 +163,6 @@ def call_llm_node(state: AgentState, config: RunnableConfig) -> AgentState:
 
     with get_openai_callback() as cb:
         result = llm_with_tools.invoke(messages)
-        update_costs(cb)
 
     # log LLM response details
     if hasattr(result, "tool_calls") and getattr(result, "tool_calls", None):

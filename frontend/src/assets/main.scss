@@ -166,6 +166,7 @@ input, textarea {
   
   .latex-block-container {
     overflow-x: auto;
+    overflow-y: hidden;
     padding: 0.5em;
   }
 }

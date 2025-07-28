@@ -66,8 +66,22 @@
     </div>
 
     <div v-if="!isCollapsed" class="sidebar__footer">
+      <div class="prompt-mode-selector">
+        <label for="prompt-mode" class="prompt-mode-label">Assistant Mode</label>
+        <select 
+          id="prompt-mode" 
+          v-model="currentPromptMode" 
+          @change="handlePromptModeChange"
+          class="prompt-mode-dropdown"
+          :disabled="isUpdatingPromptMode"
+        >
+          <option value="business">Business</option>
+          <option value="technical">Technical</option>
+        </select>
+      </div>
+      
       <div class="app-info">
-        <h4>Business Data Chat</h4>
+        <h4>Database Chat</h4>
         <p>Ask questions about your data in natural language</p>
       </div>
     </div>
@@ -75,18 +89,51 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { Menu, Plus, Trash2, MessageSquare } from 'lucide-vue-next'
 import { useChatStore } from '@/stores/chat'
 import { useStorage } from '@vueuse/core'
+import { chatService } from '@/services/chat'
 
 const chatStore = useChatStore()
 const isCollapsed = useStorage('sidebar-collapsed', false)
 const isCreatingChat = ref(false)
+const currentPromptMode = ref('technical')
+const isUpdatingPromptMode = ref(false)
 
 const chats = computed(() => chatStore.chats)
 const currentChatId = computed(() => chatStore.currentChatId)
 const currentChat = computed(() => chatStore.currentChat)
+
+// Load current prompt mode on component mount
+onMounted(async () => {
+  try {
+    currentPromptMode.value = await chatService.getPromptMode()
+  } catch (error) {
+    console.error('Failed to load prompt mode:', error)
+  }
+})
+
+const handlePromptModeChange = async () => {
+  isUpdatingPromptMode.value = true
+  try {
+    const success = await chatService.setPromptMode(currentPromptMode.value)
+    if (!success) {
+      // Revert to previous value if update failed
+      currentPromptMode.value = await chatService.getPromptMode()
+    }
+  } catch (error) {
+    console.error('Failed to update prompt mode:', error)
+    // Revert to previous value if update failed
+    try {
+      currentPromptMode.value = await chatService.getPromptMode()
+    } catch (e) {
+      console.error('Failed to revert prompt mode:', e)
+    }
+  } finally {
+    isUpdatingPromptMode.value = false
+  }
+}
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
@@ -445,6 +492,61 @@ defineExpose({
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.4;
     font-weight: 400;
+  }
+}
+
+.prompt-mode-selector {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.prompt-mode-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prompt-mode-dropdown {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  border-radius: var(--radius-lg);
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  &:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  option {
+    background: #1e293b;
+    color: var(--color-white);
+    padding: 8px;
   }
 }
 

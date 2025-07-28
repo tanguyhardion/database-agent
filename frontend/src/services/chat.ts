@@ -83,6 +83,39 @@ export class ChatService {
     }
   }
 
+  async getPromptMode(): Promise<string> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/prompt-mode`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      return result.mode;
+    } catch (error) {
+      console.error("Error getting prompt mode:", error);
+      return "technical"; // Default fallback
+    }
+  }
+
+  async setPromptMode(mode: string): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/prompt-mode`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return true;
+    } catch (error) {
+      console.error("Error setting prompt mode:", error);
+      return false;
+    }
+  }
+
   getConnectionStatus(): "unknown" | "checking" | "connected" | "disconnected" {
     return this.connectionStatus;
   }
