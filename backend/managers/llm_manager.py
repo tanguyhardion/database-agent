@@ -1,15 +1,15 @@
 import os
 
 from dotenv import load_dotenv
-from langchain_mistralai import ChatMistralAI
+from langchain_openai import ChatOpenAI
 
 
 load_dotenv()
 
-MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
+API_KEY = os.getenv("API_KEY")
 
-llm = ChatMistralAI(
-    api_key=MISTRAL_API_KEY,
+llm = ChatOpenAI(
+    api_key=API_KEY,
     temperature=0,
-    model_name ="mistral-large-latest",
+    model="gpt-4.1-mini-2025-04-14",
 )

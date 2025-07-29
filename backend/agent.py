@@ -202,9 +202,10 @@ def call_tools_node(state: AgentState, config: RunnableConfig) -> AgentState:
 
         # CRITICAL: Set flag when ExecuteQuery is called
         if tool_call["name"] == "ExecuteQuery":
-            executed_query = tool_call["args"]["query"]
+            args = tool_call.get("args", {})
+            executed_query = args.get("query", "")
             query_result = str(result)
-            query_ready_for_grading = True  # This signals we need grading
+            query_ready_for_grading = True
 
     return {
         **state,
@@ -273,7 +274,7 @@ def create_agent_graph():
     workflow.add_node("extract_question", extract_user_question_node)
     workflow.add_node("call_llm", call_llm_node)
     workflow.add_node("call_tools", call_tools_node)
-    workflow.add_node("grade_results", grade_results)
+    # workflow.add_node("grade_results", grade_results)
 
     # ------------- edges -------------
 
@@ -293,24 +294,10 @@ def create_agent_graph():
         },
     )
 
-    # CRITICAL: After tools are called, check if we need grading
-    workflow.add_conditional_edges(
-        "call_tools",
-        should_continue_after_tools,
-        {
-            "grade_results": "grade_results",  # If query was executed, grade it
-            "call_llm": "call_llm",  # Otherwise, continue with LLM
-        },
-    )
+    # CRITICAL: After tools are called, skip grading and always continue with LLM
+    workflow.add_edge("call_tools", "call_llm")
 
-    # After grading, decide whether to retry or let LLM formulate final response
-    workflow.add_conditional_edges(
-        "grade_results",
-        should_continue_after_grading,
-        {
-            "call_llm": "call_llm",  # Either retry with feedback or formulate final response
-        },
-    )
+    # Grading is disabled, so this edge is not needed
 
     return workflow.compile()
 

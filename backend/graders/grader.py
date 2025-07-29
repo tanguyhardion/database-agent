@@ -1,7 +1,7 @@
 import os
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_mistralai import ChatMistralAI
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
 # -------------------------- Setup --------------------------
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_KEY = os.getenv("API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 AZURE_ENDPOINT = os.getenv("AZURE_ENDPOINT")
 
 
@@ -50,12 +50,9 @@ If the query makes sense and reflects sound logic in structure and intention, re
         ]
     )
 
-    llm = ChatMistralAI(
-        azure_deployment="gpt-4o",
-        api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_ENDPOINT,
-        api_key=API_KEY,
-        max_tokens=500,
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        max_completion_tokens=100,
         temperature=0,
     )
     return prompt | llm.with_structured_output(GradeSQLSense, method="function_calling")
@@ -93,12 +90,9 @@ Give a binary score 'yes' or 'no'. 'Yes' means the result appears plausible and 
         ]
     )
 
-    llm = ChatMistralAI(
-        azure_deployment="gpt-4o",
-        api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_ENDPOINT,
-        api_key=API_KEY,
-        max_tokens=500,
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        max_completion_tokens=100,
         temperature=0,
     )
     return prompt | llm.with_structured_output(
@@ -137,12 +131,9 @@ Give a binary score 'yes' or 'no'. 'Yes' means the answer is consistent with the
         ]
     )
 
-    llm = ChatMistralAI(
-        azure_deployment="gpt-4o",
-        api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_ENDPOINT,
-        api_key=API_KEY,
-        max_tokens=500,
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        max_completion_tokens=100,
         temperature=0,
     )
     return prompt | llm.with_structured_output(
@@ -181,12 +172,9 @@ Give a binary score 'yes' or 'no'. 'Yes' means the answer addresses the question
         ]
     )
 
-    llm = ChatMistralAI(
-        azure_deployment="gpt-4o",
-        api_version="2024-12-01-preview",
-        azure_endpoint=AZURE_ENDPOINT,
-        api_key=API_KEY,
-        max_tokens=500,
+    llm = ChatOpenAI(
+        api_key=OPENAI_API_KEY,
+        max_completion_tokens=100,
         temperature=0,
     )
     return prompt | llm.with_structured_output(

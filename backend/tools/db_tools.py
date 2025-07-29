@@ -119,29 +119,29 @@ def get_unique_column_values(schema_name: str, table_name: str, column_name: str
 @tool("ExecuteQuery")
 def execute_query(sql_statement):
     """Use this tool once you built the query that will retrieve results answering the user's question.
-    Beware that this tool has safeguards and will reject your query if it could potentially yield large results.
     Args:
         sql_statement: A correct SQLite SELECT statement that retrieves results answering the user's question
     Returns:
         str: The statement result
     """
+    # Beware that this tool has safeguards and will reject your query if it could potentially yield large results.
     stmt_upper = sql_statement.strip().upper()
     # check if it's a SELECT without aggregation or TOP clause
-    risky = (
-        stmt_upper.startswith("SELECT")
-        and "LIMIT" not in stmt_upper
-        and "COUNT(" not in stmt_upper
-        and "SUM(" not in stmt_upper
-        and "AVG(" not in stmt_upper
-        and "GROUP BY" not in stmt_upper
-    )
+    # risky = (
+    #     stmt_upper.startswith("SELECT")
+    #     and "LIMIT" not in stmt_upper
+    #     and "COUNT(" not in stmt_upper
+    #     and "SUM(" not in stmt_upper
+    #     and "AVG(" not in stmt_upper
+    #     and "GROUP BY" not in stmt_upper
+    # )
 
-    # reject if risky
-    if risky:
-        return (
-            "Query rejected: potential to return a large number of rows. "
-            "Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
-        )
+    # # reject if risky
+    # if risky:
+    #     return (
+    #         "Query rejected: potential to return a large number of rows. "
+    #         "Please include a LIMIT clause (e.g., SELECT * ... LIMIT 100 ...) or use aggregation."
+    #     )
 
     results = db.run_no_throw(sql_statement)
     return results

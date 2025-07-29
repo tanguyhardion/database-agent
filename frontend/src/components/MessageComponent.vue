@@ -255,6 +255,8 @@ const retryMessage = () => {
     border-radius: var(--radius-lg);
     padding: 16px;
     overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
     margin: 12px 0;
     box-shadow: var(--shadow-sm);
     position: relative;
@@ -306,6 +308,8 @@ const retryMessage = () => {
     font-family: var(--font-mono);
     font-size: 0.875em;
     border: 1px solid var(--color-gray-200);
+    white-space: pre-wrap;
+    word-break: break-word;
 
     // Reset any inherited styles
     text-decoration: none;

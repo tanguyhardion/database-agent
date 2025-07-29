@@ -7,10 +7,10 @@ pre[class*="language-"] {
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 0.9em;
   text-align: left;
-  white-space: pre;
+  white-space: pre-wrap;
   word-spacing: normal;
-  word-break: normal;
-  word-wrap: normal;
+  word-break: break-word;
+  word-wrap: break-word;
   line-height: 1.4;
   tab-size: 4;
   hyphens: none;
