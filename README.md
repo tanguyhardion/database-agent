@@ -1,4 +1,4 @@
-# **Database Agent** — Agentic AI Demo
+# Database Agent — Agentic AI
 
 Recreation of an internship assignment, designed to showcase advanced agentic AI capabilities for database management.
 
@@ -23,7 +23,7 @@ A full-stack solution featuring a robust Python backend and a sleek Vue.js front
 
 ### Backend
 
-**First, configure the `backend/managers/db_manager.py` file to connect to your database.** 
+**First, configure the `backend/managers/db_manager.py` file to connect to your database.**
 
 Then follow these steps:
 
